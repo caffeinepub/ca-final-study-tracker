@@ -1,0 +1,198 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-23T15:41:34.533Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 10,
+    "implemented": 10,
+    "items": [
+      {
+        "id": "REQ-17",
+        "summary": "Add option to delete a subject while preserving its chapters in an archive/unassigned section where they remain viewable but unlinked to any subject",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/SubjectCard.tsx",
+          "frontend/src/components/ArchivedChaptersView.tsx",
+          "frontend/src/hooks/useArchivedChapters.ts",
+          "frontend/src/pages/ArchivedChaptersPage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/SubjectCard.tsx",
+          "frontend/src/hooks/useArchivedChapters.ts",
+          "frontend/src/pages/ArchivedChaptersPage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Enhance AI suggester to prioritize subjects based on timeline proximity and test scores in addition to existing logic (low completion progress and topics due for revision)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AISuggester.tsx",
+          "frontend/src/hooks/useSuggestedSubjects.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AISuggester.tsx",
+          "frontend/src/hooks/useSuggestedSubjects.ts"
+        ]
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Add progress bars for each subject in the test tracking interface showing test performance",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TestHistory.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TestHistory.tsx"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Add analytical graphs to the test tracking interface visualizing test performance trends and statistics",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TestAnalyticsChart.tsx",
+          "frontend/src/pages/TestsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TestAnalyticsChart.tsx",
+          "frontend/src/pages/TestsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Add a study session summary section where users manually write summaries and important topics, then AI formats the text properly for final revision reference",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/StudySessionForm.tsx",
+          "frontend/src/components/SessionSummariesView.tsx",
+          "frontend/src/hooks/useSessionSummaries.ts",
+          "frontend/src/pages/StudySessionsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/StudySessionForm.tsx",
+          "frontend/src/components/SessionSummariesView.tsx",
+          "frontend/src/hooks/useSessionSummaries.ts",
+          "frontend/src/pages/StudySessionsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-22",
+        "summary": "Add cute emojis to each topic throughout the application for visual appeal and engagement",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/topicEmojis.ts",
+          "frontend/src/components/ChapterCard.tsx",
+          "frontend/src/components/RevisionSchedule.tsx",
+          "frontend/src/components/StudySessionHistory.tsx",
+          "frontend/src/components/TestCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/topicEmojis.ts",
+          "frontend/src/components/TestCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-23",
+        "summary": "Apply a Spider-Man + CA themed design throughout the website combining Spider-Man's iconic red and blue color scheme with web patterns while maintaining professional academic focus appropriate for CA study tracking",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/tailwind.config.js",
+          "frontend/src/index.css",
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/components/SubjectCard.tsx",
+          "frontend/src/components/TodayGoalCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/tailwind.config.js",
+          "frontend/src/index.css",
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/components/SubjectCard.tsx",
+          "frontend/src/components/TodayGoalCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-24",
+        "summary": "Add a countdown timer in the top right tab displaying the number of days remaining until May 1, 2028 (the final exam date)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ExamCountdown.tsx",
+          "frontend/src/components/Layout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ExamCountdown.tsx",
+          "frontend/src/components/Layout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-25",
+        "summary": "Reorganize the Study tab to show all subjects with revision tracking in the same view, displaying individual progress for each subject",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/StudySessionsPage.tsx",
+          "frontend/src/components/SubjectProgressOverview.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/StudySessionsPage.tsx",
+          "frontend/src/components/SubjectProgressOverview.tsx"
+        ]
+      },
+      {
+        "id": "REQ-26",
+        "summary": "Add Spider-Man logo to the main page as a prominent branding element of the themed design",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/Dashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/Dashboard.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AISuggester.tsx",
+    "frontend/src/components/ExamCountdown.tsx",
+    "frontend/src/components/Layout.tsx",
+    "frontend/src/components/SessionSummariesView.tsx",
+    "frontend/src/components/StudySessionForm.tsx",
+    "frontend/src/components/SubjectCard.tsx",
+    "frontend/src/components/SubjectProgressOverview.tsx",
+    "frontend/src/components/TestAnalyticsChart.tsx",
+    "frontend/src/components/TestCard.tsx",
+    "frontend/src/components/TestHistory.tsx",
+    "frontend/src/components/TodayGoalCard.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useArchivedChapters.ts",
+    "frontend/src/hooks/useSessionSummaries.ts",
+    "frontend/src/hooks/useSuggestedSubjects.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/ArchivedChaptersPage.tsx",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/pages/StudySessionsPage.tsx",
+    "frontend/src/pages/TestsPage.tsx",
+    "frontend/src/utils/topicEmojis.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

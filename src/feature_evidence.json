@@ -1,0 +1,211 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-option-to-delete-a-subject-while-preserving-its-chapters-in-an-archive-unassigned-section-where-they-remain-viewable-but-unlinked-to-any-subject",
+      "featureTitle": "Add option to delete a subject while preserving its chapters in an archive/unassigned section where they remain viewable but unlinked to any subject",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/components/SubjectCard.tsx",
+        "frontend/src/hooks/useArchivedChapters.ts",
+        "frontend/src/pages/ArchivedChaptersPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enhance-ai-suggester-to-prioritize-subjects-based-on-timeline-proximity-and-test-scores-in-addition-to-existing-logic-low-completion-progress-and-topics-due-for-revision",
+      "featureTitle": "Enhance AI suggester to prioritize subjects based on timeline proximity and test scores in addition to existing logic (low completion progress and topics due for revision)",
+      "files": [
+        "frontend/src/components/AISuggester.tsx",
+        "frontend/src/hooks/useSuggestedSubjects.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-progress-bars-for-each-subject-in-the-test-tracking-interface-showing-test-performance",
+      "featureTitle": "Add progress bars for each subject in the test tracking interface showing test performance",
+      "files": [
+        "frontend/src/components/TestHistory.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-analytical-graphs-to-the-test-tracking-interface-visualizing-test-performance-trends-and-statistics",
+      "featureTitle": "Add analytical graphs to the test tracking interface visualizing test performance trends and statistics",
+      "files": [
+        "frontend/src/components/TestAnalyticsChart.tsx",
+        "frontend/src/pages/TestsPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-study-session-summary-section-where-users-manually-write-summaries-and-important-topics-then-ai-formats-the-text-properly-for-final-revision-reference",
+      "featureTitle": "Add a study session summary section where users manually write summaries and important topics, then AI formats the text properly for final revision reference",
+      "files": [
+        "frontend/src/components/SessionSummariesView.tsx",
+        "frontend/src/components/StudySessionForm.tsx",
+        "frontend/src/hooks/useSessionSummaries.ts",
+        "frontend/src/pages/StudySessionsPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-cute-emojis-to-each-topic-throughout-the-application-for-visual-appeal-and-engagement",
+      "featureTitle": "Add cute emojis to each topic throughout the application for visual appeal and engagement",
+      "files": [
+        "frontend/src/components/TestCard.tsx",
+        "frontend/src/utils/topicEmojis.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-22"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-spider-man-ca-themed-design-throughout-the-website-combining-spider-man-s-iconic-red-and-blue-color-scheme-with-web-patterns-while-maintaining-professional-academic-focus-appropriate-for-ca-study-tracking",
+      "featureTitle": "Apply a Spider-Man + CA themed design throughout the website combining Spider-Man's iconic red and blue color scheme with web patterns while maintaining professional academic focus appropriate for CA study tracking",
+      "files": [
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/components/SubjectCard.tsx",
+        "frontend/src/components/TodayGoalCard.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-23"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-countdown-timer-in-the-top-right-tab-displaying-the-number-of-days-remaining-until-may-1-2028-the-final-exam-date",
+      "featureTitle": "Add a countdown timer in the top right tab displaying the number of days remaining until May 1, 2028 (the final exam date)",
+      "files": [
+        "frontend/src/components/ExamCountdown.tsx",
+        "frontend/src/components/Layout.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-reorganize-the-study-tab-to-show-all-subjects-with-revision-tracking-in-the-same-view-displaying-individual-progress-for-each-subject",
+      "featureTitle": "Reorganize the Study tab to show all subjects with revision tracking in the same view, displaying individual progress for each subject",
+      "files": [
+        "frontend/src/components/SubjectProgressOverview.tsx",
+        "frontend/src/pages/StudySessionsPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-25"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-spider-man-logo-to-the-main-page-as-a-prominent-branding-element-of-the-themed-design",
+      "featureTitle": "Add Spider-Man logo to the main page as a prominent branding element of the themed design",
+      "files": [
+        "frontend/src/pages/Dashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-26"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

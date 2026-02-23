@@ -1,0 +1,215 @@
+{
+  "kind": "build_request",
+  "title": "Add subject deletion with chapter archiving, enhance AI suggester, add test analytics, study session summaries, emojis, Spider-Man theme, and countdown timer",
+  "projectName": "CA Final Study Tracker",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "text": "Add option to delete a subject while preserving its chapters in an archive/unassigned section where they remain viewable but unlinked to any subject",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ADD OPTION TO: 1) DELETE SUBJECT AND KEEP THE CHAPTER SAVE DON'T ASK TOPICS IN THAT",
+          "1 - (b) move those chapters to some kind of archive or 'unassigned chapters' section where you can still view them"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend stores deleted subject's chapters in an archived/unassigned state",
+        "Archived chapters remain accessible for viewing",
+        "Deletion UI includes confirmation prompt",
+        "Archived chapters section displays all unlinked chapters"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Enhance AI suggester to prioritize subjects based on timeline proximity and test scores in addition to existing logic (low completion progress and topics due for revision)",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "2) MAKE THE AI BASIS FOR SELECTING SUBJECT ON BASIS OF TIMELINE, MARKS SCORED IN TEST",
+          "2 - (b) combine these new factors with the existing logic (low completion progress and topics due for revision)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AI suggester considers subject target completion dates and time remaining",
+        "AI suggester factors in test scores when prioritizing subjects",
+        "Existing logic (low completion progress, revision due dates) remains active",
+        "Suggestions display reasoning that includes timeline and test score factors"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Add progress bars for each subject in the test tracking interface showing test performance",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "3) IN TEST ADD A PROGRESS BAR FOR EACH SUBJECT"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Test tracking interface displays a progress bar per subject",
+        "Progress bar reflects aggregate test performance for that subject",
+        "Visual indicator shows percentage or completion status"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Add analytical graphs to the test tracking interface visualizing test performance trends and statistics",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "3) IN TEST ADD A PROGRESS BAR FOR EACH SUBJECT AND AN ANALYTICAL GRAPH"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Analytical graphs display test scores over time",
+        "Graphs show subject-wise performance comparisons",
+        "Visualizations are clear and accessible"
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Add a study session summary section where users manually write summaries and important topics, then AI formats the text properly for final revision reference",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "4) AFTER EVERY STUDY SESSION ADD A SECTION FOR WRITING SUMMARY AND IMPORTANT TOPICS WHICH SUMMARY IS CREATED BASED ON THE TOPICS FOR FINAL REVISION ON EXAM",
+          "3 - (b) a text field where you manually write your own summary and notes and formatted in proper manner with ai"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Study session logging includes a text field for summary and important topics",
+        "User can manually enter their notes after each session",
+        "AI formats the entered text into a clean, structured format",
+        "Formatted summaries are stored and retrievable for final revision"
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Add cute emojis to each topic throughout the application for visual appeal and engagement",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "5) ADD CUTE EMOJIES TO EACH TOPIC"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each topic displays a relevant cute emoji",
+        "Emojis are contextually appropriate",
+        "Emojis enhance visual appeal without cluttering UI"
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Apply a Spider-Man + CA themed design throughout the website combining Spider-Man's iconic red and blue color scheme with web patterns while maintaining professional academic focus appropriate for CA study tracking",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "6) KEEP THE THEME OF WEBSITE AS MIXTURE OF SPIDERMAN AND CA",
+          "I'll blend the iconic Spider-Man aesthetic (red and blue color scheme, web patterns, dynamic energy) with professional CA elements (charts, analytics, academic focus)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Color scheme uses Spider-Man red and blue prominently",
+        "Web patterns incorporated into design elements",
+        "Professional academic tone maintained for study tracking",
+        "Theme is consistent across all pages and components"
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Add a countdown timer in the top right tab displaying the number of days remaining until May 1, 2028 (the final exam date)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "7) ADD A TIMELINE FOR FINAL PAPER - ON TOP RIGHT TAB IT SHOULS BE SHOWN THE COUNTDOWN IN NUMBER OF DAYS TO 1ST MAY 2028"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Countdown timer appears in top right of the header/tab area",
+        "Timer calculates and displays days remaining until May 1, 2028",
+        "Display is prominent and always visible",
+        "Timer updates correctly as dates progress"
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Reorganize the Study tab to show all subjects with revision tracking in the same view, displaying individual progress for each subject",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "8) SHOW SUBJECTS IN STUDY TAB IN THAT KEEP FOR ALL SUBJECTS AND THEN REVISION IN SAME TAB AND SHOW PROGRESS OF EACH SUBJECT"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Study tab displays all subjects in one unified view",
+        "Revision tracking information shown within the same tab",
+        "Each subject shows its individual progress indicator",
+        "Layout is clear and organized for easy scanning"
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Add Spider-Man logo to the main page as a prominent branding element of the themed design",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "yeah and keep spiderman logo on main page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Spider-Man logo appears on the main/dashboard page",
+        "Logo placement is prominent and visually integrated",
+        "Logo complements the Spider-Man + CA theme"
+      ]
+    }
+  ],
+  "constraints": [
+    "Maintain single-actor Motoko backend architecture",
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
+    "Use only React, Tailwind CSS, Shadcn, and React Query for frontend",
+    "Preserve existing data models and ensure backward compatibility"
+  ],
+  "nonGoals": [
+    "Implementing external AI service integrations for text formatting",
+    "Adding real-time collaboration features",
+    "Supporting multiple user accounts or multi-tenancy"
+  ],
+  "imageRequirements": {
+    "required": [
+      "Spider-Man logo illustration with transparent background suitable for header placement (spiderman-logo.dim_200x200.png)"
+    ],
+    "edits": []
+  }
+}

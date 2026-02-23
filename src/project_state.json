@@ -1,0 +1,327 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "CA Final study tracker application",
+  "architectural_notes": [
+    "Archive system needed for orphaned chapters when subjects are deleted",
+    "AI formatter integration required for study session summaries",
+    "Analytics graph component needed for test results visualization",
+    "Countdown timer component for exam date (May 1, 2028)",
+    "Spider-Man themed assets (logo, web patterns) required"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Spider-Man logo illustration with transparent background suitable for header placement (spiderman-logo.dim_200x200.png)",
+  "existing_features": [
+    {
+      "id": "feature-build-a-dashboard-view-showing-all-ca-final-subjects-with-visual-progress-indicators-completion-percentages-and-days-remaining-until-target-dates",
+      "title": "Build a dashboard view showing all CA Final subjects with visual progress indicators, completion percentages, and days remaining until target dates",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-form-interface-to-add-and-edit-ca-final-subjects-with-fields-for-subject-name-total-topics-and-target-completion-date",
+      "title": "Create a form interface to add and edit CA Final subjects with fields for subject name, total topics, and target completion date",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-study-session-logging-interface-where-users-can-record-study-hours-select-subject-mark-topics-as-completed-and-view-study-history",
+      "title": "Build a study session logging interface where users can record study hours, select subject, mark topics as completed, and view study history",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-revision-schedule-view-that-displays-upcoming-revision-items-organized-by-date-allows-marking-revisions-as-complete-and-shows-overdue-items-prominently",
+      "title": "Create a revision schedule view that displays upcoming revision items organized by date, allows marking revisions as complete, and shows overdue items prominently",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-professional-focused-visual-theme-appropriate-for-a-study-tracking-application-with-clear-typography-organized-layouts-and-calming-colors-that-promote-concentration",
+      "title": "Apply a professional, focused visual theme appropriate for a study tracking application with clear typography, organized layouts, and calming colors that promote concentration",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-personalized-header-displaying-agam-ritul-patwa-s-study-tracker-at-the-top-of-the-application-prominently-visible-on-all-pages",
+      "title": "Add a personalized header displaying 'AGAM RITUL PATWA'S STUDY TRACKER' at the top of the application, prominently visible on all pages",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-today-s-goal-section-on-the-dashboard-that-allows-users-to-set-and-track-their-daily-study-goal-with-visual-progress-indication",
+      "title": "Create a Today's Goal section on the Dashboard that allows users to set and track their daily study goal with visual progress indication",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-chapter-wise-tracker-interface-within-each-subject-view-that-displays-individual-chapters-with-progress-indicators-completion-percentages-and-allows-updating-chapter-progress",
+      "title": "Build chapter-wise tracker interface within each subject view that displays individual chapters with progress indicators, completion percentages, and allows updating chapter progress",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-tests-and-test-results-tracking-interface-with-forms-to-add-tests-linked-to-subjects-chapters-view-all-tests-with-progress-bars-showing-score-percentages-and-filter-sort-test-history",
+      "title": "Build Tests and Test Results tracking interface with forms to add tests (linked to subjects/chapters), view all tests with progress bars showing score percentages, and filter/sort test history",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-ai-suggester-component-that-analyzes-subjects-with-low-completion-progress-and-topics-due-for-revision-then-displays-prioritized-recommendations-for-what-to-study-next",
+      "title": "Implement AI suggester component that analyzes subjects with low completion progress and topics due for revision, then displays prioritized recommendations for what to study next",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-pdf-uploader-functionality-that-allows-users-to-upload-study-note-pdfs-store-them-associated-with-subjects-or-chapters-and-retrieve-them-for-viewing",
+      "title": "Add PDF uploader functionality that allows users to upload study note PDFs, store them associated with subjects or chapters, and retrieve them for viewing",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-option-to-delete-a-subject-while-preserving-its-chapters-in-an-archive-unassigned-section-where-they-remain-viewable-but-unlinked-to-any-subject",
+      "title": "Add option to delete a subject while preserving its chapters in an archive/unassigned section where they remain viewable but unlinked to any subject",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-ai-suggester-to-prioritize-subjects-based-on-timeline-proximity-and-test-scores-in-addition-to-existing-logic-low-completion-progress-and-topics-due-for-revision",
+      "title": "Enhance AI suggester to prioritize subjects based on timeline proximity and test scores in addition to existing logic (low completion progress and topics due for revision)",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-progress-bars-for-each-subject-in-the-test-tracking-interface-showing-test-performance",
+      "title": "Add progress bars for each subject in the test tracking interface showing test performance",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-analytical-graphs-to-the-test-tracking-interface-visualizing-test-performance-trends-and-statistics",
+      "title": "Add analytical graphs to the test tracking interface visualizing test performance trends and statistics",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-study-session-summary-section-where-users-manually-write-summaries-and-important-topics-then-ai-formats-the-text-properly-for-final-revision-reference",
+      "title": "Add a study session summary section where users manually write summaries and important topics, then AI formats the text properly for final revision reference",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-cute-emojis-to-each-topic-throughout-the-application-for-visual-appeal-and-engagement",
+      "title": "Add cute emojis to each topic throughout the application for visual appeal and engagement",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-spider-man-ca-themed-design-throughout-the-website-combining-spider-man-s-iconic-red-and-blue-color-scheme-with-web-patterns-while-maintaining-professional-academic-focus-appropriate-for-ca-study-tracking",
+      "title": "Apply a Spider-Man + CA themed design throughout the website combining Spider-Man's iconic red and blue color scheme with web patterns while maintaining professional academic focus appropriate for CA study tracking",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-countdown-timer-in-the-top-right-tab-displaying-the-number-of-days-remaining-until-may-1-2028-the-final-exam-date",
+      "title": "Add a countdown timer in the top right tab displaying the number of days remaining until May 1, 2028 (the final exam date)",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reorganize-the-study-tab-to-show-all-subjects-with-revision-tracking-in-the-same-view-displaying-individual-progress-for-each-subject",
+      "title": "Reorganize the Study tab to show all subjects with revision tracking in the same view, displaying individual progress for each subject",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-spider-man-logo-to-the-main-page-as-a-prominent-branding-element-of-the-themed-design",
+      "title": "Add Spider-Man logo to the main page as a prominent branding element of the themed design",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create CA Final study tracker with subject progress, study schedules, and revision tracking",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Create a backend data model to store CA Final subjects with fields for subject name, total topics, completed topics, and target completion date",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Create a backend data model for study sessions that tracks date, subject, hours studied, and topics covered",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Create a backend data model for revision schedules that allows marking topics for revision with scheduled dates",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add personalized header displaying 'AGAM RITUL PATWA'S STUDY TRACKER' at the top of the application",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Create a Today's Goal section for setting and tracking daily study goals",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Build Tests and Test Results tracking system with progress bars, linked to subjects and chapters",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Implement chapter-wise tracker within each subject for detailed progress tracking of individual chapters",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Create AI suggester that recommends next study actions based on subjects with low progress and topics due for revision",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add PDF uploader functionality for uploading and storing study notes",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Extend the backend data model to support Chapter entities within subjects, including fields for chapter name, total topics in chapter, completed topics, and parent subject reference",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Create backend data model for Tests that stores test name, date, subject reference, chapter references (optional), total marks, scored marks, and completion status",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add option to delete subject and move chapters to archive/unassigned section for viewing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Enhance AI suggester to combine timeline proximity and test scores with existing logic (low completion progress and topics due for revision)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add progress bars for each subject and analytical graphs in test tracking interface",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add study session summary section with manual text field and AI formatting for final revision notes",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add cute emojis to each topic throughout the application",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Apply Spider-Man + CA themed design throughout the website with red/blue colors and web patterns while maintaining professional academic focus",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add countdown timer to May 1, 2028 displayed in top right tab showing days remaining",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Reorganize Study tab to show all subjects with revision tracking in same tab and display progress for each subject",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add Spider-Man logo to the main page as part of themed design",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "CA Final Study Tracker",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

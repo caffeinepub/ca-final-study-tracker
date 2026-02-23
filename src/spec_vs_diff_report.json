@@ -1,0 +1,45 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-23T15:41:34.529Z",
+  "summary": "The diff implements most requirements including subject deletion with chapter archiving (REQ-17), enhanced AI suggester with timeline/test score logic (REQ-18), test analytics with progress bars and graphs (REQ-19, REQ-20), study session summaries (REQ-21), topic emojis (REQ-22), Spider-Man theme (REQ-23), countdown timer (REQ-24), reorganized Study tab (REQ-25), and Spider-Man logo (REQ-26). However, the diff is truncated and some acceptance criteria cannot be fully verified from the available content.",
+  "missing_requirements": [
+    {
+      "id": "REQ-21",
+      "requirement": "AI formats the entered text into a clean, structured format",
+      "reason": "The diff shows that session summaries are saved and displayed, but there is no evidence of AI-powered text formatting. The StudySessionForm.tsx shows manual formatting with template literals, not AI formatting.",
+      "evidence": [
+        "frontend/src/components/StudySessionForm.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.75,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AISuggester.tsx",
+    "frontend/src/components/ExamCountdown.tsx",
+    "frontend/src/components/Layout.tsx",
+    "frontend/src/components/SessionSummariesView.tsx",
+    "frontend/src/components/StudySessionForm.tsx",
+    "frontend/src/components/SubjectCard.tsx",
+    "frontend/src/components/SubjectProgressOverview.tsx",
+    "frontend/src/components/TestAnalyticsChart.tsx",
+    "frontend/src/components/TestCard.tsx",
+    "frontend/src/components/TestHistory.tsx",
+    "frontend/src/components/TodayGoalCard.tsx",
+    "frontend/src/hooks/useArchivedChapters.ts",
+    "frontend/src/hooks/useSessionSummaries.ts",
+    "frontend/src/hooks/useSuggestedSubjects.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/ArchivedChaptersPage.tsx",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/pages/StudySessionsPage.tsx",
+    "frontend/src/pages/TestsPage.tsx",
+    "frontend/src/utils/topicEmojis.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}

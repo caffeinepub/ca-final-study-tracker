@@ -1,0 +1,273 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add subject deletion with chapter archiving, enhance AI suggester, add test analytics, study session summaries, emojis, Spider-Man theme, and countdown timer",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "summary": "Add option to delete a subject while preserving its chapters in an archive/unassigned section",
+      "acceptanceCriteria": [
+        "Backend stores deleted subject's chapters in an archived/unassigned state",
+        "Archived chapters remain accessible for viewing",
+        "Deletion UI includes confirmation prompt",
+        "Archived chapters section displays all unlinked chapters"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SubjectCard.tsx",
+          "operation": "modify",
+          "description": "Add delete button with confirmation dialog to subject card. When confirmed, call backend deleteSubject method and refresh subjects list."
+        },
+        {
+          "path": "frontend/src/components/ArchivedChaptersView.tsx",
+          "operation": "create",
+          "description": "Create component to display archived/unassigned chapters using backend getArchivedChapters method. Show chapters in grid layout with read-only view indicating they are unlinked from subjects."
+        },
+        {
+          "path": "frontend/src/hooks/useArchivedChapters.ts",
+          "operation": "create",
+          "description": "Create React Query hook that fetches archived chapters from backend actor using getArchivedChapters method."
+        },
+        {
+          "path": "frontend/src/pages/ArchivedChaptersPage.tsx",
+          "operation": "create",
+          "description": "Create page displaying archived chapters with header and ArchivedChaptersView component. Include navigation back to main views."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add route for archived chapters page (/archived-chapters) in the router configuration."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Add navigation link to Archived Chapters page in the header navigation menu."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Enhance AI suggester to prioritize subjects based on timeline proximity and test scores",
+      "acceptanceCriteria": [
+        "AI suggester considers subject target completion dates and time remaining",
+        "AI suggester factors in test scores when prioritizing subjects",
+        "Existing logic (low completion progress, revision due dates) remains active",
+        "Suggestions display reasoning that includes timeline and test score factors"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AISuggester.tsx",
+          "operation": "modify",
+          "description": "Enhance suggestion logic to integrate timeline proximity (subjects with closer targetCompletionDate get higher priority) and test performance data (subjects with lower test scores get higher priority). Fetch test data using useCompletedTests hook, calculate average scores per subject, and combine with existing low-progress and revision-due logic. Update reasoning text to explain timeline and test score factors. Maintain existing backend getSuggestedSubjects call as additional input."
+        },
+        {
+          "path": "frontend/src/hooks/useSuggestedSubjects.ts",
+          "operation": "create",
+          "description": "Create React Query hook that fetches suggested subjects from backend actor using getSuggestedSubjects method."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Add progress bars for each subject in the test tracking interface",
+      "acceptanceCriteria": [
+        "Test tracking interface displays a progress bar per subject",
+        "Progress bar reflects aggregate test performance for that subject",
+        "Visual indicator shows percentage or completion status"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TestHistory.tsx",
+          "operation": "modify",
+          "description": "Add subject-wise progress summary section above the tabbed test list. Group all tests by subject, calculate average score percentage per subject, and display progress bars showing aggregate performance for each subject."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Add analytical graphs to the test tracking interface",
+      "acceptanceCriteria": [
+        "Analytical graphs display test scores over time",
+        "Graphs show subject-wise performance comparisons",
+        "Visualizations are clear and accessible"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TestAnalyticsChart.tsx",
+          "operation": "create",
+          "description": "Create chart component displaying test performance trends over time using a line chart. Show score percentages on Y-axis and test dates on X-axis with separate lines per subject. Include a bar chart comparing average scores across subjects. Use accessible color scheme and include legends."
+        },
+        {
+          "path": "frontend/src/pages/TestsPage.tsx",
+          "operation": "modify",
+          "description": "Add TestAnalyticsChart component above TestHistory to display performance graphs. Ensure charts receive test data from existing hooks."
+        }
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "summary": "Add study session summary section where users write summaries and AI formats the text",
+      "acceptanceCriteria": [
+        "Study session logging includes a text field for summary and important topics",
+        "User can manually enter their notes after each session",
+        "AI formats the entered text into a clean, structured format",
+        "Formatted summaries are stored and retrievable for final revision"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/StudySessionForm.tsx",
+          "operation": "modify",
+          "description": "Add textarea field for session summary and important topics below topics covered field. After form submission, capture summary text and call backend saveSessionSummary method with session identifier and summary content."
+        },
+        {
+          "path": "frontend/src/components/SessionSummariesView.tsx",
+          "operation": "create",
+          "description": "Create component to display all saved session summaries. Fetch summaries using backend getSessionSummaries method and render them as formatted cards grouped by date or subject. Include copy and export functionality."
+        },
+        {
+          "path": "frontend/src/hooks/useSessionSummaries.ts",
+          "operation": "create",
+          "description": "Create React Query hook that fetches session summaries from backend actor using getSessionSummaries method."
+        },
+        {
+          "path": "frontend/src/pages/StudySessionsPage.tsx",
+          "operation": "modify",
+          "description": "Add SessionSummariesView component below StudySessionHistory to display formatted summaries for final revision reference."
+        }
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "summary": "Add cute emojis to each topic throughout the application",
+      "acceptanceCriteria": [
+        "Each topic displays a relevant cute emoji",
+        "Emojis are contextually appropriate",
+        "Emojis enhance visual appeal without cluttering UI"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/topicEmojis.ts",
+          "operation": "create",
+          "description": "Create utility module with function to assign contextually appropriate cute emojis to topics based on keywords or random selection from a curated emoji list (📚, 📝, 🎯, ✨, 💡, 🔥, 🌟, 🚀, etc.)."
+        },
+        {
+          "path": "frontend/src/components/ChapterCard.tsx",
+          "operation": "modify",
+          "description": "Display topic-related emoji next to chapter name using topicEmojis utility function."
+        },
+        {
+          "path": "frontend/src/components/RevisionSchedule.tsx",
+          "operation": "modify",
+          "description": "Display emoji next to each revision topic using topicEmojis utility function."
+        },
+        {
+          "path": "frontend/src/components/StudySessionHistory.tsx",
+          "operation": "modify",
+          "description": "Display emoji next to each topic entry in study session history using topicEmojis utility function."
+        },
+        {
+          "path": "frontend/src/components/TestCard.tsx",
+          "operation": "modify",
+          "description": "Display emoji next to test subject using topicEmojis utility function."
+        }
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "summary": "Apply Spider-Man + CA themed design with red and blue color scheme and web patterns",
+      "acceptanceCriteria": [
+        "Color scheme uses Spider-Man red and blue prominently",
+        "Web patterns incorporated into design elements",
+        "Professional academic tone maintained for study tracking",
+        "Theme is consistent across all pages and components"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Update color variables to use Spider-Man inspired red (#E23636, #DC143C) and blue (#0066CC, #003D82) as primary and accent colors. Maintain professional contrast ratios for readability."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Update CSS custom properties to use Spider-Man red and blue color palette in both light and dark modes. Add web pattern background using CSS (subtle spider web SVG pattern or gradient mesh) as decorative elements. Ensure patterns are subtle and don't interfere with content readability."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Update header and footer styling to use Spider-Man theme colors. Add web pattern overlay or border accents that complement the theme while maintaining professional appearance."
+        },
+        {
+          "path": "frontend/src/components/SubjectCard.tsx",
+          "operation": "modify",
+          "description": "Apply Spider-Man theme styling to card borders, progress bars, and status badges using red/blue color scheme."
+        },
+        {
+          "path": "frontend/src/components/TodayGoalCard.tsx",
+          "operation": "modify",
+          "description": "Apply Spider-Man theme colors to progress bar and card accents."
+        }
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "summary": "Add countdown timer displaying days remaining until May 1, 2028 in top right",
+      "acceptanceCriteria": [
+        "Countdown timer appears in top right of the header/tab area",
+        "Timer calculates and displays days remaining until May 1, 2028",
+        "Display is prominent and always visible",
+        "Timer updates correctly as dates progress"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ExamCountdown.tsx",
+          "operation": "create",
+          "description": "Create countdown component that calculates days remaining until May 1, 2028 (target exam date). Display count in prominent format with label (e.g., '1234 days until CA Final'). Use Spider-Man theme styling for visual emphasis."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Add ExamCountdown component to header in the top right position, ensuring it's visible across all pages and properly aligned with navigation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Reorganize Study tab to show all subjects with revision tracking in same view",
+      "acceptanceCriteria": [
+        "Study tab displays all subjects in one unified view",
+        "Revision tracking information shown within the same tab",
+        "Each subject shows its individual progress indicator",
+        "Layout is clear and organized for easy scanning"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/StudySessionsPage.tsx",
+          "operation": "modify",
+          "description": "Reorganize layout to display all subjects with their progress indicators at the top of the page. Add revision schedule section showing upcoming and overdue revisions below subjects. Keep study session form and history in lower sections. Create unified view where users can see subject progress, revisions, and log sessions all in one scrollable page."
+        },
+        {
+          "path": "frontend/src/components/SubjectProgressOverview.tsx",
+          "operation": "create",
+          "description": "Create compact component displaying all subjects with individual progress bars and completion percentages in a grid or list layout. Show key metrics like completed topics count and target date for each subject."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Add Spider-Man logo to main page as prominent branding element",
+      "acceptanceCriteria": [
+        "Spider-Man logo appears on the main/dashboard page",
+        "Logo placement is prominent and visually integrated",
+        "Logo complements the Spider-Man + CA theme"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Add Spider-Man logo image from generated asset frontend/public/assets/generated/spiderman-logo.dim_200x200.png to dashboard header area. Position logo prominently (e.g., top center or alongside title) with appropriate sizing and styling that integrates with the Spider-Man + CA theme. Wire the generated image as a static asset reference."
+        }
+      ]
+    }
+  ]
+}
