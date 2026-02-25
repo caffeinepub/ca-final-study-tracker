@@ -1,5 +1,2 @@
-// This file is intentionally empty as all queries are now in dedicated hooks:
-// - useSubjects.ts
-// - useStudySessions.ts
-// - useRevisionSchedule.ts
+// Queries are organized in dedicated hooks for subjects, study sessions, and revision schedule.
 export {};

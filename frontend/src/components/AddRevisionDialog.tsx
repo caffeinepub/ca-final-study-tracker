@@ -1,10 +1,16 @@
-import { type ReactNode, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { RevisionForm } from './RevisionForm';
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import RevisionForm from './RevisionForm';
 
 interface AddRevisionDialogProps {
-  children: ReactNode;
-  onSuccess: () => void;
+  children: React.ReactNode;
+  onSuccess?: () => void;
 }
 
 export function AddRevisionDialog({ children, onSuccess }: AddRevisionDialogProps) {
@@ -12,13 +18,13 @@ export function AddRevisionDialog({ children, onSuccess }: AddRevisionDialogProp
 
   const handleSuccess = () => {
     setOpen(false);
-    onSuccess();
+    onSuccess?.();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Revision Topic</DialogTitle>
         </DialogHeader>

@@ -10,27 +10,19 @@ export function useUserProgress() {
     queryFn: async () => {
       if (!actor) return null;
       try {
-        return await (actor as unknown as ExtendedActor).getUserProgress();
-      } catch (err) {
-        console.warn('useUserProgress: could not fetch progress', err);
+        const extActor = actor as unknown as ExtendedActor;
+        return await extActor.getUserProgress();
+      } catch {
         return null;
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 
-  return {
-    progress: query.data ?? null,
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
+  return { progress: query.data ?? null, isLoading: query.isLoading, error: query.error };
 }
 
 export function useInvalidateUserProgress() {
   const queryClient = useQueryClient();
-  return async () => {
-    await queryClient.invalidateQueries({ queryKey: ['userProgress'] });
-  };
+  return () => queryClient.invalidateQueries({ queryKey: ['userProgress'] });
 }

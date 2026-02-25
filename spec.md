@@ -1,13 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the subjects initialization flow so that CA Final subjects and chapters load reliably without getting stuck on "Setting up subjects...".
+**Goal:** Revert the entire application to the state it was in at Version 18, undoing all changes from Versions 19, 20, and 21.
 
 **Planned changes:**
-- Fix the backend canister initialization logic to reliably pre-populate all CA Final subjects and chapters on first use, without hanging or timing out
-- Ensure subject initialization is idempotent (no duplicates on repeated calls)
-- Fix the frontend `useSeedData` hook to correctly detect unseeded state, trigger seeding, and exit the loading state promptly once seeding completes
-- Add a timeout/fallback in the frontend so the UI never hangs indefinitely — show a user-friendly error if seeding fails or takes too long
-- Invalidate subjects and chapters queries after seeding so the UI reflects the newly populated data
+- Revert all frontend changes introduced in Versions 19, 20, and 21
+- Revert all backend changes introduced in Versions 19, 20, and 21
 
-**User-visible outcome:** The app no longer gets stuck on "Setting up subjects..." — subjects and chapters appear within a few seconds of loading, and a clear error message is shown if initialization fails.
+**User-visible outcome:** The application behaves exactly as it did at Version 18, with no traces of any changes made in subsequent versions.

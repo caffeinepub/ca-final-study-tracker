@@ -1,141 +1,111 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../hooks/useActor';
 import { useSubjects } from '../hooks/useSubjects';
-import type { ExtendedActor } from '../lib/actorTypes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import type { ExtendedActor, RevisionTopic } from '../lib/actorTypes';
 
 interface RevisionFormProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-export function RevisionForm({ onSuccess }: RevisionFormProps) {
+export default function RevisionForm({ onSuccess }: RevisionFormProps) {
   const { actor } = useActor();
-  const { subjects, isLoading: subjectsLoading } = useSubjects();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const { subjects } = useSubjects();
 
-  const [formData, setFormData] = useState({
-    subject: '',
-    topic: '',
-    scheduledDate: '',
+  const [subject, setSubject] = useState('');
+  const [topic, setTopic] = useState('');
+  const [scheduledDate, setScheduledDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const extActor = actor as unknown as ExtendedActor;
+      const revisionTopic: RevisionTopic = {
+        subject,
+        topic,
+        scheduledDate: BigInt(new Date(scheduledDate).getTime()) * 1_000_000n,
+        isComplete: false,
+      };
+      await extActor.addRevisionTopic(revisionTopic);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['revisionTopics'] });
+      setSubject('');
+      setTopic('');
+      toast.success('Revision topic added!');
+      onSuccess?.();
+    },
+    onError: () => {
+      toast.error('Failed to add revision topic');
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) {
-      toast.error('Backend not initialized');
+    if (!subject || !topic) {
+      toast.error('Please fill in all fields');
       return;
     }
-
-    if (!formData.subject) {
-      toast.error('Please select a subject');
-      return;
-    }
-
-    if (!formData.topic.trim()) {
-      toast.error('Please enter a topic');
-      return;
-    }
-
-    if (!formData.scheduledDate) {
-      toast.error('Please select a scheduled date');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const dateMs = new Date(formData.scheduledDate).getTime();
-      const dateNs = BigInt(dateMs) * BigInt(1_000_000);
-
-      await (actor as unknown as ExtendedActor).addRevisionTopic(
-        formData.subject,
-        formData.topic,
-        dateNs
-      );
-
-      toast.success('Revision topic added successfully');
-      setFormData({ subject: '', topic: '', scheduledDate: '' });
-      onSuccess();
-    } catch (error) {
-      console.error('Error adding revision topic:', error);
-      toast.error('Failed to add revision topic');
-    } finally {
-      setIsSubmitting(false);
-    }
+    mutation.mutate();
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="subject">Subject</Label>
-        <Select
-          value={formData.subject}
-          onValueChange={(value) => setFormData({ ...formData, subject: value })}
-          disabled={isSubmitting || subjectsLoading}
-        >
-          <SelectTrigger id="subject">
-            <SelectValue
-              placeholder={
-                subjectsLoading
-                  ? 'Loading subjects...'
-                  : subjects.length === 0
-                  ? 'No subjects available'
-                  : 'Select a subject'
-              }
-            />
+        <Label>Subject</Label>
+        <Select value={subject} onValueChange={setSubject} disabled={mutation.isPending}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select subject" />
           </SelectTrigger>
           <SelectContent>
-            {subjects.length === 0 ? (
-              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No subjects available. Add subjects from the Dashboard first.
-              </div>
-            ) : (
-              subjects.map((subject) => (
-                <SelectItem key={subject.name} value={subject.name}>
-                  {subject.name}
-                </SelectItem>
-              ))
-            )}
+            {subjects.map((s) => (
+              <SelectItem key={s.name} value={s.name}>
+                {s.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
-
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic</Label>
+        <Label>Topic</Label>
         <Input
-          id="topic"
-          value={formData.topic}
-          onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-          placeholder="e.g., Consolidation of Financial Statements"
-          disabled={isSubmitting}
-          required
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="e.g. Consolidation of Accounts"
+          disabled={mutation.isPending}
         />
       </div>
-
       <div className="space-y-2">
-        <Label htmlFor="scheduledDate">Scheduled Date</Label>
+        <Label>Scheduled Date</Label>
         <Input
-          id="scheduledDate"
           type="date"
-          value={formData.scheduledDate}
-          onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-          disabled={isSubmitting}
-          required
+          value={scheduledDate}
+          onChange={(e) => setScheduledDate(e.target.value)}
+          disabled={mutation.isPending}
         />
       </div>
-
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isSubmitting || subjectsLoading || subjects.length === 0}
-      >
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Add Revision
+      <Button type="submit" disabled={mutation.isPending} className="w-full">
+        {mutation.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Adding...
+          </>
+        ) : (
+          'Add Revision Topic'
+        )}
       </Button>
     </form>
   );

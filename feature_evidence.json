@@ -2,12 +2,19 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-frontend-useseeddata-hook-so-that-it-correctly-detects-when-subjects-have-not-yet-been-seeded-triggers-the-seeding-process-and-transitions-out-of-the-setting-up-subjects-loading-state-promptly-once-seeding-completes-add-a-timeout-or-fallback-so-the-ui-never-hangs-indefinitely-on-the-loading-screen",
-      "featureTitle": "Fix the frontend useSeedData hook so that it correctly detects when subjects have not yet been seeded, triggers the seeding process, and transitions out of the 'Setting up subjects...' loading state promptly once seeding completes. Add a timeout or fallback so the UI never hangs indefinitely on the loading screen.",
+      "featureId": "feature-revert-the-entire-application-frontend-and-backend-to-the-state-it-was-in-at-version-18-undoing-all-changes-introduced-in-versions-19-20-and-21",
+      "featureTitle": "Revert the entire application (frontend and backend) to the state it was in at Version 18, undoing all changes introduced in Versions 19, 20, and 21.",
       "files": [
-        "frontend/src/hooks/useSeedData.ts",
-        "frontend/src/hooks/useSubjects.ts",
-        "frontend/src/pages/Dashboard.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/pages/ArchivedChaptersPage.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/QuestionPapersPage.tsx",
+        "frontend/src/pages/RevisionSchedulePage.tsx",
+        "frontend/src/pages/RewardVaultPage.tsx",
+        "frontend/src/pages/StudySessionsPage.tsx",
+        "frontend/src/pages/SubjectDetailPage.tsx",
+        "frontend/src/pages/TestsPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -19,7 +26,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-1"
       ],
       "confidence": "high"
     }

@@ -2,28 +2,22 @@ import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { ExtendedActor } from '../lib/actorTypes';
 
-export function usePdfBlobs(chapterName: string | null) {
+export function usePdfBlobs(chapterId: string | null) {
   const { actor, isFetching } = useActor();
 
-  const query = useQuery<Uint8Array | null>({
-    queryKey: ['pdfBlobs', chapterName],
+  return useQuery<Uint8Array | null>({
+    queryKey: ['pdfBlobs', chapterId],
     queryFn: async () => {
-      if (!actor || !chapterName) return null;
+      if (!actor || !chapterId) return null;
       try {
-        return await (actor as unknown as ExtendedActor).getPdfBlobs(chapterName);
-      } catch (err) {
-        console.warn('usePdfBlobs: could not fetch PDF', err);
+        const extActor = actor as unknown as ExtendedActor;
+        const chapters = await extActor.getChapters();
+        const chapter = chapters.find((c) => c.chapterId === chapterId);
+        return chapter?.notesPdf ?? null;
+      } catch {
         return null;
       }
     },
-    enabled: !!actor && !isFetching && !!chapterName,
-    retry: false,
+    enabled: !!actor && !isFetching && !!chapterId,
   });
-
-  return {
-    pdfData: query.data ?? null,
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

@@ -13,12 +13,13 @@ import { usePdfBlobs } from '../hooks/usePdfBlobs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PdfViewerProps {
+  chapterId: string;
   chapterName: string;
 }
 
-export function PdfViewer({ chapterName }: PdfViewerProps) {
+export function PdfViewer({ chapterId, chapterName }: PdfViewerProps) {
   const [open, setOpen] = useState(false);
-  const { pdfData, isLoading, error } = usePdfBlobs(open ? chapterName : null);
+  const { data: pdfData, isLoading, error } = usePdfBlobs(open ? chapterId : null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {

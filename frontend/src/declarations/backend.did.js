@@ -20,18 +20,16 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
 export const Chapter = IDL.Record({
+  'isCompleted' : IDL.Bool,
   'subjectName' : IDL.Text,
-  'name' : IDL.Text,
   'totalTopics' : IDL.Nat,
+  'chapterId' : IDL.Text,
+  'chaptersCompleted' : IDL.Nat,
   'notesPdf' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   'completedTopics' : IDL.Nat,
+  'chapterName' : IDL.Text,
 });
 export const Time = IDL.Int;
-export const QuestionPaper = IDL.Record({
-  'pdfBlob' : IDL.Vec(IDL.Nat8),
-  'name' : IDL.Text,
-  'uploadDate' : Time,
-});
 export const RevisionTopic = IDL.Record({
   'topic' : IDL.Text,
   'subject' : IDL.Text,
@@ -54,12 +52,7 @@ export const StudySession = IDL.Record({
   'subject' : IDL.Text,
   'date' : Time,
   'hoursStudied' : IDL.Nat,
-});
-export const Subject = IDL.Record({
-  'targetCompletionDate' : Time,
-  'name' : IDL.Text,
-  'totalTopics' : IDL.Nat,
-  'completedTopics' : IDL.Nat,
+  'errorLog' : IDL.Opt(IDL.Text),
 });
 export const Test = IDL.Record({
   'totalMarks' : IDL.Nat,
@@ -70,25 +63,29 @@ export const Test = IDL.Record({
   'name' : IDL.Text,
   'chapters' : IDL.Vec(IDL.Text),
 });
-export const XPResponse = IDL.Record({ 'xp' : IDL.Nat, 'level' : IDL.Nat });
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const UserProfile = IDL.Record({
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const QuestionPaper = IDL.Record({
+  'pdfBlob' : IDL.Vec(IDL.Nat8),
   'name' : IDL.Text,
-  'email' : IDL.Opt(IDL.Text),
-  'avatarUrl' : IDL.Opt(IDL.Text),
+  'uploadDate' : Time,
+});
+export const Subject = IDL.Record({
+  'name' : IDL.Text,
+  'totalChapters' : IDL.Nat,
 });
 export const Goal = IDL.Record({ 'actual' : IDL.Nat, 'dailyGoal' : IDL.Nat });
-export const SessionSummary = IDL.Record({ 'content' : IDL.Text });
 export const UserProgress = IDL.Record({
   'xp' : IDL.Nat,
   'level' : IDL.Nat,
   'lastStudyDate' : Time,
   'currentStreak' : IDL.Nat,
 });
+export const XPResponse = IDL.Record({ 'xp' : IDL.Nat, 'level' : IDL.Nat });
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -119,51 +116,43 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addChapter' : IDL.Func([Chapter], [], []),
-  'addQuestionPaper' : IDL.Func([QuestionPaper], [], []),
   'addRevisionTopic' : IDL.Func([RevisionTopic], [], []),
   'addReward' : IDL.Func([Reward], [], []),
   'addStudySession' : IDL.Func([StudySession], [], []),
-  'addSubject' : IDL.Func([Subject], [], []),
+  'addSubject' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'addTest' : IDL.Func([Test], [], []),
-  'addXP' : IDL.Func([IDL.Nat], [XPResponse], []),
-  'archiveChapter' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'deleteQuestionPaper' : IDL.Func([IDL.Text], [], []),
+  'deleteChapter' : IDL.Func([IDL.Text], [], []),
   'deleteSubject' : IDL.Func([IDL.Text], [], []),
-  'deleteTest' : IDL.Func([IDL.Text], [], []),
-  'getArchivedChapters' : IDL.Func([], [IDL.Vec(Chapter)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getChapters' : IDL.Func([], [IDL.Vec(Chapter)], ['query']),
   'getCompletedTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
-  'getDailyGoal' : IDL.Func([], [Goal], ['query']),
   'getNonCompletedTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
   'getQuestionPapers' : IDL.Func([], [IDL.Vec(QuestionPaper)], ['query']),
   'getRevisionTopics' : IDL.Func([], [IDL.Vec(RevisionTopic)], ['query']),
   'getRewards' : IDL.Func([], [IDL.Vec(Reward)], ['query']),
-  'getSessionSummary' : IDL.Func(
-      [IDL.Text],
-      [IDL.Opt(SessionSummary)],
-      ['query'],
-    ),
+  'getSessionsWithErrors' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
   'getStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
   'getSubjects' : IDL.Func([], [IDL.Vec(Subject)], ['query']),
+  'getTodayGoal' : IDL.Func([], [Goal], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'getUserProgress' : IDL.Func([], [UserProgress], ['query']),
+  'getXP' : IDL.Func([], [XPResponse], ['query']),
+  'incrementTodayHours' : IDL.Func([IDL.Nat], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'markRevisionComplete' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'saveSessionSummary' : IDL.Func([IDL.Text, SessionSummary], [], []),
-  'setDailyGoal' : IDL.Func([IDL.Nat], [], []),
-  'updateChapter' : IDL.Func([Chapter], [], []),
-  'updateDailyActual' : IDL.Func([IDL.Nat], [], []),
-  'updateReward' : IDL.Func([Reward], [], []),
-  'updateSubject' : IDL.Func([Subject], [], []),
-  'updateTest' : IDL.Func([Test], [], []),
+  'setTodayGoal' : IDL.Func([IDL.Nat], [], []),
+  'updateChapterCompletion' : IDL.Func([IDL.Text, IDL.Bool], [], []),
+  'updateChapterName' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'updateUserProgress' : IDL.Func([UserProgress], [], []),
+  'uploadPdf' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [], []),
+  'uploadQuestionPaper' : IDL.Func([QuestionPaper], [], []),
 });
 
 export const idlInitArgs = [];
@@ -181,18 +170,16 @@ export const idlFactory = ({ IDL }) => {
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
   const Chapter = IDL.Record({
+    'isCompleted' : IDL.Bool,
     'subjectName' : IDL.Text,
-    'name' : IDL.Text,
     'totalTopics' : IDL.Nat,
+    'chapterId' : IDL.Text,
+    'chaptersCompleted' : IDL.Nat,
     'notesPdf' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'completedTopics' : IDL.Nat,
+    'chapterName' : IDL.Text,
   });
   const Time = IDL.Int;
-  const QuestionPaper = IDL.Record({
-    'pdfBlob' : IDL.Vec(IDL.Nat8),
-    'name' : IDL.Text,
-    'uploadDate' : Time,
-  });
   const RevisionTopic = IDL.Record({
     'topic' : IDL.Text,
     'subject' : IDL.Text,
@@ -215,12 +202,7 @@ export const idlFactory = ({ IDL }) => {
     'subject' : IDL.Text,
     'date' : Time,
     'hoursStudied' : IDL.Nat,
-  });
-  const Subject = IDL.Record({
-    'targetCompletionDate' : Time,
-    'name' : IDL.Text,
-    'totalTopics' : IDL.Nat,
-    'completedTopics' : IDL.Nat,
+    'errorLog' : IDL.Opt(IDL.Text),
   });
   const Test = IDL.Record({
     'totalMarks' : IDL.Nat,
@@ -231,25 +213,26 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'chapters' : IDL.Vec(IDL.Text),
   });
-  const XPResponse = IDL.Record({ 'xp' : IDL.Nat, 'level' : IDL.Nat });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const UserProfile = IDL.Record({
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const QuestionPaper = IDL.Record({
+    'pdfBlob' : IDL.Vec(IDL.Nat8),
     'name' : IDL.Text,
-    'email' : IDL.Opt(IDL.Text),
-    'avatarUrl' : IDL.Opt(IDL.Text),
+    'uploadDate' : Time,
   });
+  const Subject = IDL.Record({ 'name' : IDL.Text, 'totalChapters' : IDL.Nat });
   const Goal = IDL.Record({ 'actual' : IDL.Nat, 'dailyGoal' : IDL.Nat });
-  const SessionSummary = IDL.Record({ 'content' : IDL.Text });
   const UserProgress = IDL.Record({
     'xp' : IDL.Nat,
     'level' : IDL.Nat,
     'lastStudyDate' : Time,
     'currentStreak' : IDL.Nat,
   });
+  const XPResponse = IDL.Record({ 'xp' : IDL.Nat, 'level' : IDL.Nat });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -280,51 +263,43 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addChapter' : IDL.Func([Chapter], [], []),
-    'addQuestionPaper' : IDL.Func([QuestionPaper], [], []),
     'addRevisionTopic' : IDL.Func([RevisionTopic], [], []),
     'addReward' : IDL.Func([Reward], [], []),
     'addStudySession' : IDL.Func([StudySession], [], []),
-    'addSubject' : IDL.Func([Subject], [], []),
+    'addSubject' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'addTest' : IDL.Func([Test], [], []),
-    'addXP' : IDL.Func([IDL.Nat], [XPResponse], []),
-    'archiveChapter' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'deleteQuestionPaper' : IDL.Func([IDL.Text], [], []),
+    'deleteChapter' : IDL.Func([IDL.Text], [], []),
     'deleteSubject' : IDL.Func([IDL.Text], [], []),
-    'deleteTest' : IDL.Func([IDL.Text], [], []),
-    'getArchivedChapters' : IDL.Func([], [IDL.Vec(Chapter)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getChapters' : IDL.Func([], [IDL.Vec(Chapter)], ['query']),
     'getCompletedTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
-    'getDailyGoal' : IDL.Func([], [Goal], ['query']),
     'getNonCompletedTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
     'getQuestionPapers' : IDL.Func([], [IDL.Vec(QuestionPaper)], ['query']),
     'getRevisionTopics' : IDL.Func([], [IDL.Vec(RevisionTopic)], ['query']),
     'getRewards' : IDL.Func([], [IDL.Vec(Reward)], ['query']),
-    'getSessionSummary' : IDL.Func(
-        [IDL.Text],
-        [IDL.Opt(SessionSummary)],
-        ['query'],
-      ),
+    'getSessionsWithErrors' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
     'getStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
     'getSubjects' : IDL.Func([], [IDL.Vec(Subject)], ['query']),
+    'getTodayGoal' : IDL.Func([], [Goal], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'getUserProgress' : IDL.Func([], [UserProgress], ['query']),
+    'getXP' : IDL.Func([], [XPResponse], ['query']),
+    'incrementTodayHours' : IDL.Func([IDL.Nat], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'markRevisionComplete' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'saveSessionSummary' : IDL.Func([IDL.Text, SessionSummary], [], []),
-    'setDailyGoal' : IDL.Func([IDL.Nat], [], []),
-    'updateChapter' : IDL.Func([Chapter], [], []),
-    'updateDailyActual' : IDL.Func([IDL.Nat], [], []),
-    'updateReward' : IDL.Func([Reward], [], []),
-    'updateSubject' : IDL.Func([Subject], [], []),
-    'updateTest' : IDL.Func([Test], [], []),
+    'setTodayGoal' : IDL.Func([IDL.Nat], [], []),
+    'updateChapterCompletion' : IDL.Func([IDL.Text, IDL.Bool], [], []),
+    'updateChapterName' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'updateUserProgress' : IDL.Func([UserProgress], [], []),
+    'uploadPdf' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [], []),
+    'uploadQuestionPaper' : IDL.Func([QuestionPaper], [], []),
   });
 };
 

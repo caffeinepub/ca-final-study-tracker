@@ -9,8 +9,6 @@ export interface None {
 export type Option<T> = Some<T> | None;
 export interface UserProfile {
     name: string;
-    email?: string;
-    avatarUrl?: string;
 }
 export interface Goal {
     actual: bigint;
@@ -55,26 +53,25 @@ export interface RevisionTopic {
     isComplete: boolean;
 }
 export interface Chapter {
+    isCompleted: boolean;
     subjectName: string;
-    name: string;
     totalTopics: bigint;
+    chapterId: string;
+    chaptersCompleted: bigint;
     notesPdf?: Uint8Array;
     completedTopics: bigint;
-}
-export interface SessionSummary {
-    content: string;
+    chapterName: string;
 }
 export interface StudySession {
     topicsCovered: string;
     subject: string;
     date: Time;
     hoursStudied: bigint;
+    errorLog?: string;
 }
 export interface Subject {
-    targetCompletionDate: Time;
     name: string;
-    totalTopics: bigint;
-    completedTopics: bigint;
+    totalChapters: bigint;
 }
 export interface XPResponse {
     xp: bigint;
@@ -87,41 +84,37 @@ export enum UserRole {
 }
 export interface backendInterface {
     addChapter(chapter: Chapter): Promise<void>;
-    addQuestionPaper(paper: QuestionPaper): Promise<void>;
     addRevisionTopic(topic: RevisionTopic): Promise<void>;
     addReward(reward: Reward): Promise<void>;
     addStudySession(session: StudySession): Promise<void>;
-    addSubject(subject: Subject): Promise<void>;
+    addSubject(name: string, totalChapters: bigint): Promise<void>;
     addTest(test: Test): Promise<void>;
-    addXP(amount: bigint): Promise<XPResponse>;
-    archiveChapter(chapterName: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    deleteQuestionPaper(paperName: string): Promise<void>;
-    deleteSubject(subjectName: string): Promise<void>;
-    deleteTest(testName: string): Promise<void>;
-    getArchivedChapters(): Promise<Array<Chapter>>;
+    deleteChapter(id: string): Promise<void>;
+    deleteSubject(name: string): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getChapters(): Promise<Array<Chapter>>;
     getCompletedTests(): Promise<Array<Test>>;
-    getDailyGoal(): Promise<Goal>;
     getNonCompletedTests(): Promise<Array<Test>>;
     getQuestionPapers(): Promise<Array<QuestionPaper>>;
     getRevisionTopics(): Promise<Array<RevisionTopic>>;
     getRewards(): Promise<Array<Reward>>;
-    getSessionSummary(key: string): Promise<SessionSummary | null>;
+    getSessionsWithErrors(): Promise<Array<StudySession>>;
     getStudySessions(): Promise<Array<StudySession>>;
     getSubjects(): Promise<Array<Subject>>;
+    getTodayGoal(): Promise<Goal>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUserProgress(): Promise<UserProgress>;
+    getXP(): Promise<XPResponse>;
+    incrementTodayHours(hours: bigint): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    markRevisionComplete(subject: string, topic: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    saveSessionSummary(key: string, summary: SessionSummary): Promise<void>;
-    setDailyGoal(goal: bigint): Promise<void>;
-    updateChapter(chapter: Chapter): Promise<void>;
-    updateDailyActual(actual: bigint): Promise<void>;
-    updateReward(reward: Reward): Promise<void>;
-    updateSubject(subject: Subject): Promise<void>;
-    updateTest(test: Test): Promise<void>;
+    setTodayGoal(goal: bigint): Promise<void>;
+    updateChapterCompletion(id: string, isCompleted: boolean): Promise<void>;
+    updateChapterName(id: string, newName: string): Promise<void>;
     updateUserProgress(progress: UserProgress): Promise<void>;
+    uploadPdf(id: string, pdf: Uint8Array): Promise<void>;
+    uploadQuestionPaper(paper: QuestionPaper): Promise<void>;
 }

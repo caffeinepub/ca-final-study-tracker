@@ -18,7 +18,7 @@ interface QuestionPaperViewerProps {
 }
 
 export function QuestionPaperViewer({ paperName, open, onOpenChange }: QuestionPaperViewerProps) {
-  const { pdfData, isLoading, error } = useQuestionPaperPdf(open ? paperName : null);
+  const { data: pdfData, isLoading, error } = useQuestionPaperPdf(open ? paperName : null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {

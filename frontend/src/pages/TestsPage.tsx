@@ -1,42 +1,37 @@
-import { useState } from 'react';
+import TestHistory from '../components/TestHistory';
+import { AddTestDialog } from '../components/AddTestDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { AddTestDialog } from '../components/AddTestDialog';
-import { TestHistory } from '../components/TestHistory';
-import { TestAnalyticsChart } from '../components/TestAnalyticsChart';
 import { useSubjects } from '../hooks/useSubjects';
-import { Separator } from '@/components/ui/separator';
+import { TestAnalyticsChart } from '../components/TestAnalyticsChart';
 
-export function TestsPage() {
-  const [showAddDialog, setShowAddDialog] = useState(false);
+export default function TestsPage() {
   const { subjects } = useSubjects();
+  const hasSubjects = subjects.length > 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Tests & Results
-          </h2>
-          <p className="text-muted-foreground mt-1">Track your test performance and scores 📊</p>
+          <h1 className="text-2xl font-black tracking-tight">Tests</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Track your test performance and progress
+          </p>
         </div>
-        <Button
-          onClick={() => setShowAddDialog(true)}
-          className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-          disabled={subjects.length === 0}
-        >
-          <Plus className="h-5 w-5" />
-          Add Test
-        </Button>
+        <AddTestDialog>
+          <Button size="sm" disabled={!hasSubjects}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Test
+          </Button>
+        </AddTestDialog>
       </div>
-
+      {!hasSubjects && (
+        <p className="text-sm text-muted-foreground">
+          Add subjects first before adding tests.
+        </p>
+      )}
       <TestAnalyticsChart />
-
-      <Separator className="my-8" />
-
       <TestHistory />
-
-      <AddTestDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
     </div>
   );
 }

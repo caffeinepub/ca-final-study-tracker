@@ -1,58 +1,31 @@
-import { StudySessionForm } from '../components/StudySessionForm';
-import { StudySessionHistory } from '../components/StudySessionHistory';
-import { SessionSummariesView } from '../components/SessionSummariesView';
 import { SubjectProgressOverview } from '../components/SubjectProgressOverview';
-import { RevisionSchedule } from '../components/RevisionSchedule';
-import { useStudySessions } from '../hooks/useStudySessions';
-import { useRevisionSchedule } from '../hooks/useRevisionSchedule';
-import { ClipboardList } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import RevisionSchedule from '../components/RevisionSchedule';
+import StudySessionForm from '../components/StudySessionForm';
+import StudySessionHistory from '../components/StudySessionHistory';
+import { SessionSummariesView } from '../components/SessionSummariesView';
 
-export function StudySessionsPage() {
-  const { refetch } = useStudySessions();
-  const { refetch: refetchRevisions } = useRevisionSchedule();
-
+export default function StudySessionsPage() {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary">
-          <ClipboardList className="h-6 w-6" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Study Sessions
-          </h2>
-          <p className="text-muted-foreground">Log your study hours and track your progress 📚</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black tracking-tight">Study Sessions</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Log your study sessions and track your progress
+        </p>
       </div>
 
-      {/* Subject Progress Overview */}
       <SubjectProgressOverview />
 
-      <Separator className="my-8" />
-
-      {/* Revision Schedule */}
-      <div>
-        <h3 className="text-xl font-semibold mb-4">Revision Tracking</h3>
-        <RevisionSchedule onUpdate={refetchRevisions} />
-      </div>
-
-      <Separator className="my-8" />
-
-      {/* Study Session Form and History */}
-      <div className="grid gap-8 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <StudySessionForm onSuccess={refetch} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <StudySessionForm />
+          <SessionSummariesView />
         </div>
-        <div className="lg:col-span-3">
+        <div className="space-y-6">
+          <RevisionSchedule />
           <StudySessionHistory />
         </div>
       </div>
-
-      <Separator className="my-8" />
-
-      {/* Session Summaries */}
-      <SessionSummariesView />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import type { SessionSummaryEntry } from '../hooks/useSessionSummaries';
 import { toast } from 'sonner';
 
 export function SessionSummariesView() {
-  const { summaries, isLoading } = useSessionSummaries();
+  const { data: summaries, isLoading } = useSessionSummaries();
 
   const handleCopy = (entry: SessionSummaryEntry) => {
     const text = entry.value?.content ?? '';
@@ -37,7 +37,7 @@ export function SessionSummariesView() {
     );
   }
 
-  if (summaries.length === 0) {
+  if (!summaries || summaries.length === 0) {
     return (
       <Card className="border-2 border-primary/20">
         <CardHeader>

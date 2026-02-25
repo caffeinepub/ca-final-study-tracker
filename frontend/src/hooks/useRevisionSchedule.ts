@@ -5,25 +5,17 @@ import type { RevisionTopic, ExtendedActor } from '../lib/actorTypes';
 export function useRevisionSchedule() {
   const { actor, isFetching } = useActor();
 
-  const query = useQuery<RevisionTopic[]>({
-    queryKey: ['revisionSchedule'],
+  return useQuery<RevisionTopic[]>({
+    queryKey: ['revisionTopics'],
     queryFn: async () => {
       if (!actor) return [];
       try {
-        return await (actor as unknown as ExtendedActor).getRevisionSchedule();
-      } catch (err) {
-        console.warn('useRevisionSchedule: could not fetch revisions', err);
+        const extActor = actor as unknown as ExtendedActor;
+        return await extActor.getRevisionTopics();
+      } catch {
         return [];
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
-
-  return {
-    revisions: query.data ?? [],
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

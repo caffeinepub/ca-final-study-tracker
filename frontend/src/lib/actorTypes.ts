@@ -1,143 +1,107 @@
-// Extended actor interface with all backend methods used by the frontend.
-// The auto-generated backend.d.ts only exposes a subset; we extend it here
-// so TypeScript is satisfied without modifying the generated file.
+import type { backendInterface } from '../backend';
 
-export interface Subject {
+export type Subject = {
   name: string;
-  totalTopics: bigint;
-  completedTopics: bigint;
-  targetCompletionDate: bigint;
-}
+  totalChapters: bigint;
+};
 
-export interface Chapter {
-  name: string;
+export type Chapter = {
+  chapterId: string;
+  chapterName: string;
+  chaptersCompleted: bigint;
   subjectName: string;
   totalTopics: bigint;
   completedTopics: bigint;
-  notesPdf: [] | [Uint8Array];
-}
+  notesPdf?: Uint8Array;
+  isCompleted: boolean;
+};
 
-export interface StudySession {
+export type StudySession = {
   date: bigint;
   subject: string;
   hoursStudied: bigint;
   topicsCovered: string;
-}
+  errorLog?: string;
+};
 
-export interface Test {
+export type Test = {
   name: string;
   subject: string;
   date: bigint;
   totalMarks: bigint;
-  scoredMarks: [] | [bigint];
+  scoredMarks?: bigint;
   chapters: string[];
   isCompleted: boolean;
-}
+};
 
-export interface RevisionTopic {
+export type RevisionTopic = {
   subject: string;
   topic: string;
   scheduledDate: bigint;
   isComplete: boolean;
-}
+};
 
-export interface Goal {
+export type Goal = {
   dailyGoal: bigint;
   actual: bigint;
-}
+};
 
-export interface UserProgress {
+export type UserProgress = {
   xp: bigint;
   level: bigint;
   currentStreak: bigint;
   lastStudyDate: bigint;
-}
+};
 
-export interface XPResponse {
-  xp: bigint;
-  level: bigint;
-}
-
-export interface Reward {
+export type Reward = {
   id: string;
   name: string;
   description: string;
   unlockCondition: string;
   isUnlocked: boolean;
-  unlockDate: [] | [bigint];
-  progress: [] | [bigint];
-  target: [] | [bigint];
+  unlockDate?: bigint;
+  progress?: bigint;
+  target?: bigint;
   bonusXp: bigint;
-}
+};
 
-export interface QuestionPaperMeta {
+export type QuestionPaperMeta = {
   name: string;
   uploadDate: bigint;
-}
+};
 
-export interface ExtendedActor {
-  // Subjects
+export type QuestionPaper = {
+  name: string;
+  uploadDate: bigint;
+  pdfBlob: Uint8Array;
+};
+
+export type ExtendedActor = backendInterface & {
+  addSubject(name: string, totalChapters: bigint): Promise<void>;
   getSubjects(): Promise<Subject[]>;
-  addSubject(name: string, totalTopics: bigint, targetDate: bigint): Promise<void>;
-  updateCompletedTopics(name: string, completedTopics: bigint): Promise<void>;
   deleteSubject(name: string): Promise<void>;
-
-  // Chapters
-  addChapter(subjectName: string, chapterName: string, totalTopics: bigint): Promise<void>;
-  updateChapterTopics(chapterName: string, completedTopics: bigint): Promise<void>;
-  getArchivedChapters(): Promise<Chapter[]>;
-  uploadPdf(pdfData: Uint8Array, chapterName: string): Promise<void>;
-  getPdfBlobs(chapterName: string): Promise<Uint8Array>;
-
-  // Study Sessions
+  getChapters(): Promise<Chapter[]>;
+  addChapter(chapter: Chapter): Promise<void>;
+  deleteChapter(id: string): Promise<void>;
+  updateChapterName(id: string, newName: string): Promise<void>;
+  updateChapterCompletion(id: string, isCompleted: boolean): Promise<void>;
+  uploadPdf(id: string, pdf: Uint8Array): Promise<void>;
+  addStudySession(session: StudySession): Promise<void>;
   getStudySessions(): Promise<StudySession[]>;
-  addStudySession(
-    date: bigint,
-    subject: string,
-    hoursStudied: bigint,
-    topicsCovered: string
-  ): Promise<XPResponse>;
-
-  // Session Summaries
-  getSessionSummaries(): Promise<Array<{ key: string; value: { content: string } }>>;
-  saveSessionSummary(id: string, content: string): Promise<void>;
-
-  // Tests
-  getTests(): Promise<Test[]>;
-  getPendingTests(): Promise<Test[]>;
+  getSessionsWithErrors(): Promise<StudySession[]>;
+  addTest(test: Test): Promise<void>;
   getCompletedTests(): Promise<Test[]>;
-  addTest(
-    name: string,
-    subject: string,
-    date: bigint,
-    totalMarks: bigint,
-    chapters: string[]
-  ): Promise<void>;
-  updateTestScore(testName: string, scoredMarks: bigint): Promise<XPResponse>;
-
-  // Revision
-  getRevisionSchedule(): Promise<RevisionTopic[]>;
-  addRevisionTopic(subject: string, topic: string, scheduledDate: bigint): Promise<void>;
+  getNonCompletedTests(): Promise<Test[]>;
+  addRevisionTopic(topic: RevisionTopic): Promise<void>;
   markRevisionComplete(subject: string, topic: string): Promise<void>;
-  getRevisionSuggestions(): Promise<string[]>;
-
-  // Goals
-  getTodayGoal(): Promise<Goal>;
+  getRevisionTopics(): Promise<RevisionTopic[]>;
   setTodayGoal(goal: bigint): Promise<void>;
-  incrementTodayGoal(): Promise<void>;
-
-  // User Progress
+  incrementTodayHours(hours: bigint): Promise<void>;
+  getTodayGoal(): Promise<Goal>;
   getUserProgress(): Promise<UserProgress>;
-
-  // Rewards
-  getAllRewards(): Promise<Reward[]>;
-  evaluateRewards(): Promise<Reward[]>;
-
-  // Question Papers
-  getAllQuestionPapers(): Promise<QuestionPaperMeta[]>;
-  getQuestionPaperPdf(name: string): Promise<Uint8Array>;
-  uploadQuestionPaper(name: string, pdfBlob: Uint8Array): Promise<void>;
-
-  // AI Suggestions
-  getSuggestedSubjects(): Promise<string[]>;
-}
+  updateUserProgress(progress: UserProgress): Promise<void>;
+  getRewards(): Promise<Reward[]>;
+  addReward(reward: Reward): Promise<void>;
+  getQuestionPapers(): Promise<QuestionPaper[]>;
+  uploadQuestionPaper(paper: QuestionPaper): Promise<void>;
+};

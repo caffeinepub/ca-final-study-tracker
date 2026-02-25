@@ -1,29 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { ExtendedActor } from '../lib/actorTypes';
+import { useSubjects } from './useSubjects';
 
 export function useSuggestedSubjects() {
   const { actor, isFetching } = useActor();
+  const { subjects } = useSubjects();
 
-  const query = useQuery<string[]>({
+  return useQuery<string[]>({
     queryKey: ['suggestedSubjects'],
     queryFn: async () => {
-      if (!actor) return [];
-      try {
-        return await (actor as unknown as ExtendedActor).getSuggestedSubjects();
-      } catch (err) {
-        console.warn('useSuggestedSubjects: could not fetch suggested subjects', err);
-        return [];
-      }
+      if (!subjects || subjects.length === 0) return [];
+      // Return subjects as suggestions
+      return subjects.map((s) => s.name).slice(0, 3);
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
-
-  return {
-    suggestedSubjects: query.data ?? [],
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

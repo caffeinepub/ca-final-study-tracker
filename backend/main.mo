@@ -1,46 +1,42 @@
 import Map "mo:core/Map";
+import Iter "mo:core/Iter";
 import Time "mo:core/Time";
 import List "mo:core/List";
 import Array "mo:core/Array";
-import Order "mo:core/Order";
-import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
 import Blob "mo:core/Blob";
-import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
-import MixinStorage "blob-storage/Mixin";
-import Migration "migration";
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
+import Runtime "mo:core/Runtime";
 
-// Apply migration on upgrade (no permanent change)
-(with migration = Migration.run)
+import AccessControl "authorization/access-control";
+import MixinStorage "blob-storage/Mixin";
+import MixinAuthorization "authorization/MixinAuthorization";
+
 actor {
-  // Important: Initialize access control state before mixin.
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // ── Domain types ───────────────────────────────────────────────────────────
-  type Subject = {
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
+  // Types
+  public type UserProfile = {
     name : Text;
-    totalTopics : Nat;
-    completedTopics : Nat;
-    targetCompletionDate : Time.Time;
   };
 
-  module Subject {
-    public func compare(a : Subject, b : Subject) : Order.Order {
-      Text.compare(a.name, b.name);
-    };
+  public type Subject = {
+    name : Text;
+    totalChapters : Nat;
   };
 
-  type Chapter = {
-    name : Text;
+  public type Chapter = {
+    chapterId : Text;
+    chapterName : Text;
+    chaptersCompleted : Nat;
     subjectName : Text;
     totalTopics : Nat;
     completedTopics : Nat;
     notesPdf : ?Blob;
+    isCompleted : Bool;
   };
 
   type StudySession = {
@@ -48,6 +44,7 @@ actor {
     subject : Text;
     hoursStudied : Nat;
     topicsCovered : Text;
+    errorLog : ?Text;
   };
 
   type Test = {
@@ -106,13 +103,8 @@ actor {
     pdfBlob : Blob;
   };
 
-  public type UserProfile = {
-    name : Text;
-    email : ?Text;
-    avatarUrl : ?Text;
-  };
-
-  // ── Persistent state ───────────────────────────────────────────────────────
+  // State
+  let userProfiles = Map.empty<Principal, UserProfile>();
   let subjects = Map.empty<Text, Subject>();
   let completedTests = Map.empty<Text, Test>();
   let nonCompletedTests = Map.empty<Text, Test>();
@@ -136,9 +128,6 @@ actor {
   var rewards : ?Map.Map<Text, Reward> = null;
   var questionPapers : ?Map.Map<Text, QuestionPaper> = null;
 
-  let userProfiles = Map.empty<Principal, UserProfile>();
-
-  // ── Helper: get or initialise rewards map ─────────────────────────────────
   func getRewardsMap() : Map.Map<Text, Reward> {
     switch (rewards) {
       case (?r) { r };
@@ -161,10 +150,10 @@ actor {
     };
   };
 
-  // ── User Profile methods ──────────────────────────────────────────────────
+  // User Profiles
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get their profile");
     };
     userProfiles.get(caller);
   };
@@ -177,115 +166,116 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  // ── Subjects methods ──────────────────────────────────────────────────────
-  public query ({ caller }) func getSubjects() : async [Subject] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view subjects");
-    };
-    subjects.values().toArray().sort();
-  };
-
-  public shared ({ caller }) func addSubject(subject : Subject) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+  // Subject Management
+  public shared ({ caller }) func addSubject(name : Text, totalChapters : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add subjects");
     };
-    subjects.add(subject.name, subject);
-  };
-
-  public shared ({ caller }) func updateSubject(subject : Subject) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update subjects");
+    let subject = {
+      name;
+      totalChapters;
     };
     subjects.add(subject.name, subject);
   };
 
-  public shared ({ caller }) func deleteSubject(subjectName : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+  public shared ({ caller }) func deleteSubject(name : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete subjects");
     };
-    subjects.remove(subjectName);
+    subjects.remove(name);
   };
 
-  // ── Chapters methods ──────────────────────────────────────────────────────
+  public query ({ caller }) func getSubjects() : async [Subject] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view subjects");
+    };
+    subjects.values().toArray();
+  };
+
+  // Chapter Management
   public query ({ caller }) func getChapters() : async [Chapter] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view chapters");
     };
     chapters.values().toArray();
   };
 
   public shared ({ caller }) func addChapter(chapter : Chapter) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add chapters");
     };
-    chapters.add(chapter.name, chapter);
+    chapters.add(chapter.chapterId, chapter);
   };
 
-  public shared ({ caller }) func updateChapter(chapter : Chapter) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update chapters");
+  public shared ({ caller }) func deleteChapter(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete chapters");
     };
-    chapters.add(chapter.name, chapter);
+    chapters.remove(id);
   };
 
-  public shared ({ caller }) func archiveChapter(chapterName : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can archive chapters");
+  public shared ({ caller }) func updateChapterName(id : Text, newName : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update chapter names");
     };
-    switch (chapters.get(chapterName)) {
+    switch (chapters.get(id)) {
       case (?chapter) {
-        archivedChapters.add(chapterName, chapter);
-        chapters.remove(chapterName);
+        chapters.add(id, { chapter with chapterName = newName });
       };
-      case (null) { Runtime.trap("Chapter not found") };
+      case (null) {};
     };
   };
 
-  public query ({ caller }) func getArchivedChapters() : async [Chapter] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view archived chapters");
+  public shared ({ caller }) func updateChapterCompletion(id : Text, isCompleted : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update chapter completion");
     };
-    archivedChapters.values().toArray();
+    switch (chapters.get(id)) {
+      case (?chapter) {
+        chapters.add(id, { chapter with isCompleted });
+      };
+      case (null) {};
+    };
   };
 
-  // ── Study Sessions methods ────────────────────────────────────────────────
-  public query ({ caller }) func getStudySessions() : async [StudySession] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view study sessions");
-    };
-    studySessions.toArray();
-  };
-
+  // Study Sessions
   public shared ({ caller }) func addStudySession(session : StudySession) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add study sessions");
     };
     studySessions.add(session);
   };
 
-  // ── Tests methods ─────────────────────────────────────────────────────────
-  public query ({ caller }) func getCompletedTests() : async [Test] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view tests");
+  public query ({ caller }) func getStudySessions() : async [StudySession] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view study sessions");
     };
-    completedTests.values().toArray();
+    studySessions.toArray();
   };
 
-  public query ({ caller }) func getNonCompletedTests() : async [Test] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view tests");
+  public query ({ caller }) func getSessionsWithErrors() : async [StudySession] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view sessions with errors");
     };
-    nonCompletedTests.values().toArray();
+    studySessions.toArray().filter(
+      func(session) {
+        switch (session.errorLog) {
+          case (null) { false };
+          case (?_) { true };
+        };
+      }
+    );
   };
 
+  // Test Management
   public shared ({ caller }) func addTest(test : Test) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add tests");
     };
     if (test.isCompleted) {
@@ -295,149 +285,141 @@ actor {
     };
   };
 
-  public shared ({ caller }) func updateTest(test : Test) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update tests");
+  public query ({ caller }) func getCompletedTests() : async [Test] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view completed tests");
     };
-    if (test.isCompleted) {
-      completedTests.add(test.name, test);
-      nonCompletedTests.remove(test.name);
-    } else {
-      nonCompletedTests.add(test.name, test);
-      completedTests.remove(test.name);
-    };
+    completedTests.values().toArray();
   };
 
-  public shared ({ caller }) func deleteTest(testName : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can delete tests");
+  public query ({ caller }) func getNonCompletedTests() : async [Test] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view non-completed tests");
     };
-    completedTests.remove(testName);
-    nonCompletedTests.remove(testName);
+    nonCompletedTests.values().toArray();
   };
 
-  // ── Revision Topics methods ───────────────────────────────────────────────
-  public query ({ caller }) func getRevisionTopics() : async [RevisionTopic] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view revision topics");
-    };
-    revisionTopics.toArray();
-  };
-
+  // Revision Topic Methods
   public shared ({ caller }) func addRevisionTopic(topic : RevisionTopic) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add revision topics");
     };
     revisionTopics.add(topic);
   };
 
-  // ── Daily Goal methods ────────────────────────────────────────────────────
-  public query ({ caller }) func getDailyGoal() : async Goal {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view daily goals");
+  public shared ({ caller }) func markRevisionComplete(subject : Text, topic : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mark revision topics complete");
     };
-    { dailyGoal = dailyGoal; actual = dailyActual };
+    let updated = revisionTopics.toArray().map(
+      func(t : RevisionTopic) : RevisionTopic {
+        if (t.subject == subject and t.topic == topic) {
+          { t with isComplete = true };
+        } else {
+          t;
+        };
+      }
+    );
+    revisionTopics.clear();
+    for (t in updated.vals()) {
+      revisionTopics.add(t);
+    };
   };
 
-  public shared ({ caller }) func setDailyGoal(goal : Nat) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+  public query ({ caller }) func getRevisionTopics() : async [RevisionTopic] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view revision topics");
+    };
+    revisionTopics.toArray();
+  };
+
+  // Daily Goal Methods
+  public shared ({ caller }) func setTodayGoal(goal : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can set daily goals");
     };
     dailyGoal := goal;
   };
 
-  public shared ({ caller }) func updateDailyActual(actual : Nat) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update daily actual");
+  public shared ({ caller }) func incrementTodayHours(hours : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can increment today's hours");
     };
-    dailyActual := actual;
+    dailyActual := dailyActual + hours;
   };
 
-  // ── Session Summaries methods ─────────────────────────────────────────────
-  public query ({ caller }) func getSessionSummary(key : Text) : async ?SessionSummary {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view session summaries");
+  public query ({ caller }) func getTodayGoal() : async Goal {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view daily goals");
     };
-    sessionSummaries.get(key);
+    { dailyGoal = dailyGoal; actual = dailyActual };
   };
 
-  public shared ({ caller }) func saveSessionSummary(key : Text, summary : SessionSummary) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can save session summaries");
+  // PDF / Question Paper Upload
+  public shared ({ caller }) func uploadPdf(id : Text, pdf : Blob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can upload PDFs");
     };
-    sessionSummaries.add(key, summary);
+    switch (chapters.get(id)) {
+      case (?chapter) {
+        chapters.add(id, { chapter with notesPdf = ?pdf });
+      };
+      case (null) {};
+    };
   };
 
-  // ── User Progress methods ─────────────────────────────────────────────────
+  public shared ({ caller }) func uploadQuestionPaper(paper : QuestionPaper) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can upload question papers");
+    };
+    let qp = getQuestionPapersMap();
+    qp.add(paper.name, paper);
+  };
+
+  public query ({ caller }) func getQuestionPapers() : async [QuestionPaper] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view question papers");
+    };
+    let qp = getQuestionPapersMap();
+    qp.values().toArray();
+  };
+
+  // Rewards
+  public query ({ caller }) func getRewards() : async [Reward] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view rewards");
+    };
+    let r = getRewardsMap();
+    r.values().toArray();
+  };
+
+  public shared ({ caller }) func addReward(reward : Reward) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add rewards");
+    };
+    let r = getRewardsMap();
+    r.add(reward.id, reward);
+  };
+
+  // User Progress
   public query ({ caller }) func getUserProgress() : async UserProgress {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view progress");
     };
     userProgress;
   };
 
   public shared ({ caller }) func updateUserProgress(progress : UserProgress) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update progress");
     };
     userProgress := progress;
   };
 
-  public shared ({ caller }) func addXP(amount : Nat) : async XPResponse {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can add XP");
+  public query ({ caller }) func getXP() : async XPResponse {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view XP");
     };
-    let newXp = userProgress.xp + amount;
-    let newLevel = (newXp / 1000) + 1;
-    userProgress := {
-      userProgress with
-      xp = newXp;
-      level = newLevel;
-    };
-    { xp = newXp; level = newLevel };
-  };
-
-  // ── Rewards methods ───────────────────────────────────────────────────────
-  public query ({ caller }) func getRewards() : async [Reward] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view rewards");
-    };
-    getRewardsMap().values().toArray();
-  };
-
-  public shared ({ caller }) func addReward(reward : Reward) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can add rewards");
-    };
-    getRewardsMap().add(reward.id, reward);
-  };
-
-  public shared ({ caller }) func updateReward(reward : Reward) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update rewards");
-    };
-    getRewardsMap().add(reward.id, reward);
-  };
-
-  // ── Question Papers methods ───────────────────────────────────────────────
-  public query ({ caller }) func getQuestionPapers() : async [QuestionPaper] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view question papers");
-    };
-    getQuestionPapersMap().values().toArray();
-  };
-
-  public shared ({ caller }) func addQuestionPaper(paper : QuestionPaper) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can add question papers");
-    };
-    getQuestionPapersMap().add(paper.name, paper);
-  };
-
-  public shared ({ caller }) func deleteQuestionPaper(paperName : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can delete question papers");
-    };
-    getQuestionPapersMap().remove(paperName);
+    { xp = userProgress.xp; level = userProgress.level };
   };
 };

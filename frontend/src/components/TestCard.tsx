@@ -1,127 +1,130 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../hooks/useActor';
-import type { Test, ExtendedActor } from '../lib/actorTypes';
-import { useInvalidateUserProgress } from '../hooks/useUserProgress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Loader2, Zap } from 'lucide-react';
+import type { Test, ExtendedActor } from '../lib/actorTypes';
 
 interface TestCardProps {
   test: Test;
-  onUpdate: () => void;
 }
 
-export function TestCard({ test, onUpdate }: TestCardProps) {
+export default function TestCard({ test }: TestCardProps) {
   const { actor } = useActor();
-  const invalidateUserProgress = useInvalidateUserProgress();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [scoredMarks, setScoredMarks] = useState(
-    test.scoredMarks.length > 0 ? Number(test.scoredMarks[0]) : 0
-  );
+  const queryClient = useQueryClient();
+  const [score, setScore] = useState('');
+  const [showScoreInput, setShowScoreInput] = useState(false);
 
-  const percentage =
-    test.scoredMarks.length > 0
-      ? (Number(test.scoredMarks[0]) / Number(test.totalMarks)) * 100
-      : null;
+  const scoreMutation = useMutation({
+    mutationFn: async (scoredMarks: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      const extActor = actor as unknown as ExtendedActor;
+      const updatedTest: Test = {
+        ...test,
+        scoredMarks,
+        isCompleted: true,
+      };
+      await extActor.addTest(updatedTest);
+    },
+    onSuccess: (_, scoredMarks) => {
+      queryClient.invalidateQueries({ queryKey: ['completedTests'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingTests'] });
+      queryClient.invalidateQueries({ queryKey: ['allTests'] });
+      const pct = test.totalMarks > 0n ? Math.round((Number(scoredMarks) / Number(test.totalMarks)) * 100) : 0;
+      const xp = pct >= 80 ? 50 : pct >= 60 ? 30 : 10;
+      toast.success(`✅ Test scored! +${xp} XP`);
+      setShowScoreInput(false);
+    },
+    onError: () => {
+      toast.error('Failed to save score');
+    },
+  });
 
-  const testDate = new Date(Number(test.date) / 1_000_000);
-
-  const getScoreEmoji = (pct: number) => {
-    if (pct >= 90) return '🏆';
-    if (pct >= 75) return '🌟';
-    if (pct >= 60) return '✅';
-    if (pct >= 40) return '📚';
-    return '💪';
-  };
-
-  const handleUpdateScore = async () => {
-    if (!actor) return;
-    setIsUpdating(true);
-    try {
-      const xpResponse = await (actor as unknown as ExtendedActor).updateTestScore(
-        test.name,
-        BigInt(scoredMarks)
-      );
-      await invalidateUserProgress();
-      const xpGained = Math.round((scoredMarks / Number(test.totalMarks)) * 50);
-      toast.success(
-        <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-yellow-500" />
-          <span>
-            Score updated! <strong>+{xpGained} XP</strong> earned
-            {xpResponse && ` · Level ${Number(xpResponse.level)}`}
-          </span>
-        </div>
-      );
-      onUpdate();
-    } catch (error) {
-      console.error('Error updating test score:', error);
-      toast.error('Failed to update test score');
-    } finally {
-      setIsUpdating(false);
+  const handleScoreSubmit = () => {
+    const s = parseInt(score);
+    if (isNaN(s) || s < 0 || s > Number(test.totalMarks)) {
+      toast.error(`Score must be between 0 and ${Number(test.totalMarks)}`);
+      return;
     }
+    scoreMutation.mutate(BigInt(s));
   };
+
+  const pct = test.scoredMarks !== undefined && test.totalMarks > 0n
+    ? Math.round((Number(test.scoredMarks) / Number(test.totalMarks)) * 100)
+    : null;
+
+  const emoji = pct === null ? '📝' : pct >= 80 ? '🔥' : pct >= 60 ? '👍' : '📚';
 
   return (
-    <Card className="border-2 border-border hover:border-primary/30 transition-all">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm leading-tight">{test.name}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">{testDate.toLocaleDateString()}</p>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Badge variant="outline" className="text-xs">
-              {test.subject}
-            </Badge>
-            {percentage !== null && (
-              <span className="text-lg">{getScoreEmoji(percentage)}</span>
-            )}
+    <div className="rounded-lg border border-border/40 p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{emoji}</span>
+          <div>
+            <p className="text-xs font-medium">{test.name}</p>
+            <p className="text-xs text-muted-foreground">{test.subject}</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {percentage !== null ? (
-          <div className="text-center py-2">
-            <p className="text-2xl font-bold text-primary">{percentage.toFixed(1)}%</p>
-            <p className="text-xs text-muted-foreground">
-              {test.scoredMarks[0]?.toString()} / {test.totalMarks.toString()} marks
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Enter your score:</p>
+        <div className="flex items-center gap-1.5">
+          {test.isCompleted ? (
+            <Badge variant="secondary" className="text-xs h-5 bg-green-500/10 text-green-600">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              {pct}%
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-xs h-5">
+              <Clock className="h-3 w-3 mr-1" />
+              Pending
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {!test.isCompleted && (
+        <div>
+          {showScoreInput ? (
             <div className="flex items-center gap-2">
               <Input
                 type="number"
+                value={score}
+                onChange={(e) => setScore(e.target.value)}
+                placeholder={`Score / ${Number(test.totalMarks)}`}
+                className="h-7 text-xs flex-1"
                 min="0"
-                max={Number(test.totalMarks)}
-                value={scoredMarks || ''}
-                onChange={(e) => setScoredMarks(parseInt(e.target.value) || 0)}
-                className="h-8 text-sm"
-                placeholder={`0 - ${test.totalMarks.toString()}`}
-                disabled={isUpdating}
+                max={Number(test.totalMarks).toString()}
               />
-              <Button size="sm" onClick={handleUpdateScore} disabled={isUpdating} className="shrink-0">
-                {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+              <Button
+                size="sm"
+                className="h-7 text-xs px-2"
+                onClick={handleScoreSubmit}
+                disabled={scoreMutation.isPending}
+              >
+                {scoreMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs px-2"
+                onClick={() => setShowScoreInput(false)}
+              >
+                Cancel
               </Button>
             </div>
-          </div>
-        )}
-
-        {test.chapters.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {test.chapters.map((ch) => (
-              <Badge key={ch} variant="secondary" className="text-xs">
-                {ch}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs w-full"
+              onClick={() => setShowScoreInput(true)}
+            >
+              Enter Score
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

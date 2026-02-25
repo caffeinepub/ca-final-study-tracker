@@ -1,31 +1,96 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix subjects initialization stuck on 'Setting up subjects...'",
+  "title": "Revert Frontend to Version 18",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Fix the frontend useSeedData hook to correctly detect when subjects have not been seeded, trigger seeding without hanging, and add timeout/fallback handling for the loading state",
+      "id": "REQ-1",
+      "summary": "Revert all frontend files to their Version 18 state, removing changes from Versions 19, 20, and 21",
       "acceptanceCriteria": [
-        "The 'Setting up subjects...' message disappears and subjects are displayed within a few seconds of the app loading",
-        "If seeding fails or takes too long, a user-friendly error message is shown instead of an infinite spinner",
-        "After seeding, related queries (subjects, chapters) are invalidated so the UI reflects the newly seeded data"
+        "The deployed application matches the exact state of Version 18.",
+        "All changes introduced after Version 18 (Versions 19, 20, 21) are fully reverted.",
+        "The application builds and deploys successfully from the Version 18 codebase."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useSeedData.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Refactor the seeding logic to properly detect empty subject lists, add a timeout mechanism (e.g., 30 seconds) to prevent infinite loading, implement proper error handling with user-friendly messages, ensure the hook correctly invalidates subjects and chapters queries after successful seeding, and add retry logic if initial seeding fails. Verify that the hook uses the backend interface's getSubjects and addSubject methods correctly."
+          "description": "Restore the route configuration and layout setup to match Version 18 exactly, removing any routing or structure changes introduced in later versions."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Revert the authentication flow, navigation header, and layout structure to the Version 18 implementation, undoing any changes to user interface or authentication logic."
+        },
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Restore the actor initialization and caching logic to Version 18, reverting any authentication or actor configuration changes."
+        },
+        {
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
+          "operation": "modify",
+          "description": "Revert Internet Identity integration to Version 18 state, removing any authentication flow modifications from later versions."
         },
         {
           "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Update the Dashboard to consume seeding state from useSeedData hook, display 'Setting up subjects...' loading message only while seeding is in progress, show a user-friendly error message with a retry button if seeding fails or times out, and ensure the UI transitions smoothly to displaying subjects once seeding completes successfully."
+          "description": "Restore the dashboard layout, component composition, and data fetching logic to match Version 18 exactly."
         },
         {
-          "path": "frontend/src/hooks/useSubjects.ts",
+          "path": "frontend/src/pages/StudySessionsPage.tsx",
           "operation": "modify",
-          "description": "Review and ensure the useSubjects hook properly returns loading and error states so that components consuming it can distinguish between no-data-yet (seeding needed) versus data-loaded scenarios. Add a flag or return property to indicate when the query has completed its first fetch attempt."
+          "description": "Revert the study sessions page structure and component integration to Version 18 state."
+        },
+        {
+          "path": "frontend/src/pages/RevisionSchedulePage.tsx",
+          "operation": "modify",
+          "description": "Restore the revision schedule page to its Version 18 implementation."
+        },
+        {
+          "path": "frontend/src/pages/TestsPage.tsx",
+          "operation": "modify",
+          "description": "Revert the tests page layout and functionality to Version 18 state."
+        },
+        {
+          "path": "frontend/src/pages/SubjectDetailPage.tsx",
+          "operation": "modify",
+          "description": "Restore the subject detail page to match Version 18 implementation."
+        },
+        {
+          "path": "frontend/src/pages/ArchivedChaptersPage.tsx",
+          "operation": "modify",
+          "description": "Revert the archived chapters page to Version 18 state."
+        },
+        {
+          "path": "frontend/src/pages/RewardVaultPage.tsx",
+          "operation": "modify",
+          "description": "Restore the reward vault page to its Version 18 implementation."
+        },
+        {
+          "path": "frontend/src/pages/QuestionPapersPage.tsx",
+          "operation": "modify",
+          "description": "Revert the question papers page to Version 18 state."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Restore the application entry point and provider configuration to Version 18 state."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Revert global styles and theme configuration to Version 18, removing any CSS changes from later versions."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Restore the HTML entry point to Version 18 state if any changes were made in later versions."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Revert Tailwind configuration to Version 18, removing any theme or plugin changes from later versions."
         }
       ]
     }

@@ -10,15 +10,15 @@ interface RewardCardProps {
 
 export function RewardCard({ reward }: RewardCardProps) {
   const progress =
-    reward.progress.length > 0 && reward.target.length > 0
-      ? Math.min((Number(reward.progress[0]) / Number(reward.target[0])) * 100, 100)
+    reward.progress !== undefined && reward.target !== undefined && reward.target > 0n
+      ? Math.min((Number(reward.progress) / Number(reward.target)) * 100, 100)
       : reward.isUnlocked
       ? 100
       : 0;
 
   const unlockDate =
-    reward.unlockDate.length > 0
-      ? new Date(Number(reward.unlockDate[0]) / 1_000_000).toLocaleDateString()
+    reward.unlockDate !== undefined
+      ? new Date(Number(reward.unlockDate) / 1_000_000).toLocaleDateString()
       : null;
 
   return (

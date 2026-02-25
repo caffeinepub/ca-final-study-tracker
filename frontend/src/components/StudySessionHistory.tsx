@@ -1,76 +1,67 @@
+import React from 'react';
 import { useStudySessions } from '../hooks/useStudySessions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, BookOpen } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Clock, BookOpen, AlertCircle } from 'lucide-react';
 
-export function StudySessionHistory() {
-  const { sessions, isLoading, error } = useStudySessions();
+function formatDate(timestamp: bigint): string {
+  const ms = Number(timestamp) / 1_000_000;
+  return new Date(ms).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Study History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+export default function StudySessionHistory() {
+  const { data: sessions, isLoading } = useStudySessions();
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Study History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="destructive">
-            <AlertDescription>Failed to load study sessions</AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const sortedSessions = [...sessions].sort((a, b) => Number(b.date - a.date));
+  const sorted = sessions ? [...sessions].sort((a, b) => Number(b.date) - Number(a.date)) : [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Study History</CardTitle>
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Clock className="h-4 w-4 text-primary" />
+          Session History
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {sortedSessions.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
-            <BookOpen className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p>No study sessions logged yet</p>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 rounded-lg" />
+            ))}
           </div>
+        ) : sorted.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-6">
+            No sessions logged yet. Start studying!
+          </p>
         ) : (
-          <div className="space-y-4">
-            {sortedSessions.map((session, index) => {
-              const date = new Date(Number(session.date) / 1_000_000);
-              return (
-                <div
-                  key={index}
-                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/50"
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <Badge variant="outline">{session.subject}</Badge>
-                    <span className="text-sm text-muted-foreground">{date.toLocaleDateString()}</span>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {sorted.map((session, idx) => (
+              <div key={idx} className="rounded-lg border border-border/40 p-3 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <BookOpen className="h-3 w-3 text-primary" />
+                    <span className="text-xs font-medium">{session.subject}</span>
                   </div>
-                  <p className="mb-2 text-sm">{session.topicsCovered}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>{session.hoursStudied.toString()} hours</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="text-xs h-5">
+                      {Number(session.hoursStudied)}h
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{formatDate(session.date)}</span>
                   </div>
                 </div>
-              );
-            })}
+                <p className="text-xs text-muted-foreground">{session.topicsCovered}</p>
+                {session.errorLog && (
+                  <div className="mt-1.5 rounded bg-destructive/10 border border-destructive/20 p-2 flex items-start gap-1.5">
+                    <AlertCircle className="h-3 w-3 text-destructive mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-destructive-foreground">{session.errorLog}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

@@ -5,25 +5,18 @@ import type { Chapter, ExtendedActor } from '../lib/actorTypes';
 export function useArchivedChapters() {
   const { actor, isFetching } = useActor();
 
-  const query = useQuery<Chapter[]>({
+  return useQuery<Chapter[]>({
     queryKey: ['archivedChapters'],
     queryFn: async () => {
       if (!actor) return [];
       try {
-        return await (actor as unknown as ExtendedActor).getArchivedChapters();
-      } catch (err) {
-        console.warn('useArchivedChapters: could not fetch archived chapters', err);
+        const extActor = actor as unknown as ExtendedActor;
+        const chapters = await extActor.getChapters();
+        return chapters.filter((c) => c.isCompleted);
+      } catch {
         return [];
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
-
-  return {
-    archivedChapters: query.data ?? [],
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

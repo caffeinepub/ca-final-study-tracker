@@ -13,7 +13,7 @@ function formatDate(time: bigint): string {
 }
 
 export function QuestionPaperList() {
-  const { papers, isLoading, error } = useQuestionPapers();
+  const { data: papers, isLoading, error } = useQuestionPapers();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ export function QuestionPaperList() {
     );
   }
 
-  if (papers.length === 0) {
+  if (!papers || papers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
         <BookOpen className="h-12 w-12 text-muted-foreground/40" />

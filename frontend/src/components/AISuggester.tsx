@@ -1,213 +1,88 @@
+import React from 'react';
+import { useRevisionSuggestions } from '../hooks/useRevisionSuggestions';
+import { useSuggestedSubjects } from '../hooks/useSuggestedSubjects';
+import { useCompletedTests } from '../hooks/useCompletedTests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, AlertCircle, Clock, TrendingDown, Loader2, Target, Award } from 'lucide-react';
-import { useRevisionSuggestions } from '../hooks/useRevisionSuggestions';
-import { useSubjects } from '../hooks/useSubjects';
-import { useRevisionSchedule } from '../hooks/useRevisionSchedule';
-import { useCompletedTests } from '../hooks/useCompletedTests';
-import { useSuggestedSubjects } from '../hooks/useSuggestedSubjects';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Zap, BookOpen, Calendar } from 'lucide-react';
 
-export function AISuggester() {
-  const { suggestions, isLoading: suggestionsLoading } = useRevisionSuggestions();
-  const { subjects, isLoading: subjectsLoading } = useSubjects();
-  const { revisions, isLoading: revisionsLoading } = useRevisionSchedule();
-  const { completedTests, isLoading: testsLoading } = useCompletedTests();
-  const { suggestedSubjects, isLoading: backendSuggestionsLoading } = useSuggestedSubjects();
+export default function AISuggester() {
+  const { data: revisionSuggestions, isLoading: revLoading } = useRevisionSuggestions();
+  const { data: suggestedSubjects, isLoading: subLoading } = useSuggestedSubjects();
+  const { data: completedTests } = useCompletedTests();
 
-  const isLoading =
-    suggestionsLoading || subjectsLoading || revisionsLoading || testsLoading || backendSuggestionsLoading;
+  const lowScoreSubjects = completedTests
+    ?.filter((t) => t.scoredMarks !== undefined && t.totalMarks > 0n)
+    .filter((t) => (Number(t.scoredMarks!) / Number(t.totalMarks)) * 100 < 60)
+    .map((t) => t.subject)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 3) ?? [];
 
-  if (isLoading) {
-    return (
-      <Card className="border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-web">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Study Suggestions 🕷️
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Safe arrays — always defined after loading
-  const safeSubjects = subjects ?? [];
-  const safeRevisions = revisions ?? [];
-  const safeCompletedTests = completedTests ?? [];
-  const safeSuggestedSubjects = suggestedSubjects ?? [];
-
-  // Calculate average test scores per subject
-  const subjectTestScores = new Map<string, { total: number; count: number }>();
-  safeCompletedTests.forEach((test) => {
-    if (test.scoredMarks && test.totalMarks) {
-      const scoredArr = test.scoredMarks as unknown as Array<bigint>;
-      const scored = Array.isArray(scoredArr) ? Number(scoredArr[0]) : Number(test.scoredMarks);
-      const percentage = (scored / Number(test.totalMarks)) * 100;
-      const existing = subjectTestScores.get(test.subject) || { total: 0, count: 0 };
-      subjectTestScores.set(test.subject, {
-        total: existing.total + percentage,
-        count: existing.count + 1,
-      });
-    }
-  });
-
-  // Find subjects with low test scores (< 60%)
-  const lowScoreSubjects = Array.from(subjectTestScores.entries())
-    .filter(([_, scores]) => scores.total / scores.count < 60)
-    .map(([subject, scores]) => ({
-      subject,
-      avgScore: scores.total / scores.count,
-    }))
-    .sort((a, b) => a.avgScore - b.avgScore)
-    .slice(0, 2);
-
-  // Find subjects with approaching deadlines (within 30 days)
-  const now = Date.now();
-  const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
-  const urgentSubjects = safeSubjects
-    .filter((s) => {
-      const targetDate = Number(s.targetCompletionDate) / 1_000_000;
-      const total = Number(s.totalTopics);
-      const progress = total > 0 ? (Number(s.completedTopics) / total) * 100 : 0;
-      return targetDate >= now && targetDate <= thirtyDaysFromNow && progress < 80;
-    })
-    .sort((a, b) => Number(a.targetCompletionDate) - Number(b.targetCompletionDate))
-    .slice(0, 2);
-
-  // Find subjects with low progress (< 50%)
-  const lowProgressSubjects = safeSubjects
-    .filter((s) => {
-      const total = Number(s.totalTopics);
-      const progress = total > 0 ? (Number(s.completedTopics) / total) * 100 : 0;
-      return progress < 50;
-    })
-    .sort((a, b) => {
-      const totalA = Number(a.totalTopics);
-      const totalB = Number(b.totalTopics);
-      const progressA = totalA > 0 ? (Number(a.completedTopics) / totalA) * 100 : 0;
-      const progressB = totalB > 0 ? (Number(b.completedTopics) / totalB) * 100 : 0;
-      return progressA - progressB;
-    })
-    .slice(0, 2);
-
-  // Find overdue revisions
-  const overdueRevisions = safeRevisions
-    .filter((r) => !r.isComplete && Number(r.scheduledDate) / 1_000_000 < now)
-    .slice(0, 2);
-
-  // Find upcoming revisions (next 7 days)
-  const sevenDaysFromNow = now + 7 * 24 * 60 * 60 * 1000;
-  const upcomingRevisions = safeRevisions
-    .filter(
-      (r) =>
-        !r.isComplete &&
-        Number(r.scheduledDate) / 1_000_000 >= now &&
-        Number(r.scheduledDate) / 1_000_000 <= sevenDaysFromNow
-    )
-    .slice(0, 2);
-
-  const allSuggestions = [
-    ...lowScoreSubjects.map((s) => ({
-      type: 'low-score' as const,
-      text: `Focus on ${s.subject}`,
-      reason: `Low test score: ${s.avgScore.toFixed(0)}%`,
-      icon: Award,
-      color: 'text-destructive',
-    })),
-    ...urgentSubjects.map((s) => ({
-      type: 'urgent-deadline' as const,
-      text: `Prioritize ${s.name}`,
-      reason: `Deadline approaching: ${new Date(Number(s.targetCompletionDate) / 1_000_000).toLocaleDateString()}`,
-      icon: Target,
-      color: 'text-chart-4',
-    })),
-    ...lowProgressSubjects.map((s) => ({
-      type: 'low-progress' as const,
-      text: `Focus on ${s.name}`,
-      reason: `Low progress: ${(Number(s.totalTopics) > 0 ? (Number(s.completedTopics) / Number(s.totalTopics)) * 100 : 0).toFixed(0)}%`,
-      icon: TrendingDown,
-      color: 'text-chart-4',
-    })),
-    ...overdueRevisions.map((r) => ({
-      type: 'overdue' as const,
-      text: `Revise ${r.topic}`,
-      reason: `Overdue: ${r.subject}`,
-      icon: AlertCircle,
-      color: 'text-destructive',
-    })),
-    ...upcomingRevisions.map((r) => ({
-      type: 'upcoming' as const,
-      text: `Prepare for ${r.topic}`,
-      reason: `Due soon: ${r.subject}`,
-      icon: Clock,
-      color: 'text-secondary',
-    })),
-  ];
-
-  // Include backend suggestions
-  const backendSuggestionsList = safeSuggestedSubjects
-    .filter((s) => s && s.trim() !== '')
-    .map((s) => ({
-      type: 'backend-suggested' as const,
-      text: `Work on ${s}`,
-      reason: 'AI recommended',
-      icon: Sparkles,
-      color: 'text-primary',
-    }));
-
-  const combinedSuggestions = [...allSuggestions, ...backendSuggestionsList].slice(0, 6);
-
-  if (combinedSuggestions.length === 0) {
-    return (
-      <Card className="border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-web">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Study Suggestions 🕷️
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <p className="text-muted-foreground">Great job! You're on track with all your subjects. 🎉</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const isLoading = revLoading || subLoading;
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-web">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          AI Study Suggestions 🕷️
+    <Card className="border-border/50">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Zap className="h-4 w-4 text-primary" />
+          Study Suggestions
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {combinedSuggestions.map((suggestion, index) => {
-            const Icon = suggestion.icon;
-            return (
-              <div
-                key={index}
-                className="flex items-start gap-3 rounded-lg border-2 border-border bg-card/50 p-3 transition-all hover:bg-card hover:border-primary/30"
-              >
-                <Icon className={`h-5 w-5 mt-0.5 ${suggestion.color}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{suggestion.text}</p>
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    {suggestion.reason}
-                  </Badge>
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-6 rounded" />)}
+          </div>
+        ) : (
+          <>
+            {lowScoreSubjects.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-destructive mb-1.5">Needs Attention</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {lowScoreSubjects.map((s) => (
+                    <Badge key={s} variant="destructive" className="text-xs">
+                      <BookOpen className="h-3 w-3 mr-1" />
+                      {s}
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            )}
+            {revisionSuggestions && revisionSuggestions.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">Overdue Revisions</p>
+                <div className="space-y-1">
+                  {revisionSuggestions.map((s, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3 text-primary flex-shrink-0" />
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {suggestedSubjects && suggestedSubjects.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">Focus Areas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestedSubjects.map((s) => (
+                    <Badge key={s} variant="secondary" className="text-xs">
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {lowScoreSubjects.length === 0 &&
+              (!revisionSuggestions || revisionSuggestions.length === 0) &&
+              (!suggestedSubjects || suggestedSubjects.length === 0) && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Keep studying to get personalized suggestions!
+                </p>
+              )}
+          </>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,16 +1,33 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
-import { Layout } from './components/Layout';
-import { Dashboard } from './pages/Dashboard';
-import { StudySessionsPage } from './pages/StudySessionsPage';
-import { RevisionSchedulePage } from './pages/RevisionSchedulePage';
-import { TestsPage } from './pages/TestsPage';
-import { SubjectDetailPage } from './pages/SubjectDetailPage';
-import { ArchivedChaptersPage } from './pages/ArchivedChaptersPage';
-import { RewardVaultPage } from './pages/RewardVaultPage';
-import { QuestionPapersPage } from './pages/QuestionPapersPage';
+import React from 'react';
+import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import StudySessionsPage from './pages/StudySessionsPage';
+import RevisionSchedulePage from './pages/RevisionSchedulePage';
+import TestsPage from './pages/TestsPage';
+import SubjectDetailPage from './pages/SubjectDetailPage';
+import ArchivedChaptersPage from './pages/ArchivedChaptersPage';
+import RewardVaultPage from './pages/RewardVaultPage';
+import QuestionPapersPage from './pages/QuestionPapersPage';
+import ErrorLogPage from './pages/ErrorLogPage';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
 
 const rootRoute = createRootRoute({
-  component: Layout,
+  component: () => (
+    <Layout>
+      <Outlet />
+    </Layout>
+  ),
 });
 
 const indexRoute = createRoute({
@@ -19,15 +36,15 @@ const indexRoute = createRoute({
   component: Dashboard,
 });
 
-const sessionsRoute = createRoute({
+const studySessionsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/sessions',
+  path: '/study-sessions',
   component: StudySessionsPage,
 });
 
-const revisionsRoute = createRoute({
+const revisionScheduleRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/revisions',
+  path: '/revision-schedule',
   component: RevisionSchedulePage,
 });
 
@@ -39,7 +56,7 @@ const testsRoute = createRoute({
 
 const subjectDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/subjects/$subjectName',
+  path: '/subject/$subjectName',
   component: SubjectDetailPage,
 });
 
@@ -49,9 +66,9 @@ const archivedChaptersRoute = createRoute({
   component: ArchivedChaptersPage,
 });
 
-const rewardVaultRoute = createRoute({
+const rewardsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/reward-vault',
+  path: '/rewards',
   component: RewardVaultPage,
 });
 
@@ -61,15 +78,22 @@ const questionPapersRoute = createRoute({
   component: QuestionPapersPage,
 });
 
+const errorLogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/error-log',
+  component: ErrorLogPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  sessionsRoute,
-  revisionsRoute,
+  studySessionsRoute,
+  revisionScheduleRoute,
   testsRoute,
   subjectDetailRoute,
   archivedChaptersRoute,
-  rewardVaultRoute,
+  rewardsRoute,
   questionPapersRoute,
+  errorLogRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -81,5 +105,11 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }

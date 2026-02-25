@@ -1,30 +1,27 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import type { Chapter, ExtendedActor } from '../lib/actorTypes';
 
-/**
- * Fetches all chapters from the backend and filters by subjectName.
- * Uses the real backendInterface actor (getChapters returns all chapters).
- * Returns an empty array gracefully on error or when no chapters exist.
- */
 export function useChapters(subjectName?: string) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['chapters', subjectName ?? ''],
+  return useQuery<Chapter[]>({
+    queryKey: ['chapters'],
     queryFn: async () => {
       if (!actor) return [];
       try {
-        const allChapters = await actor.getChapters();
-        if (!allChapters) return [];
-        if (subjectName) {
-          return allChapters.filter((c) => c.subjectName === subjectName);
-        }
-        return allChapters;
+        const extActor = actor as unknown as ExtendedActor;
+        return await extActor.getChapters();
       } catch {
         return [];
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
+    select: subjectName ? (data) => data.filter((c) => c.subjectName === subjectName) : undefined,
   });
+}
+
+export function useInvalidateChapters() {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ['chapters'] });
 }

@@ -1,11 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCompletedTests } from '../hooks/useCompletedTests';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, BarChart3, Loader2 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { TrendingUp, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function TestAnalyticsChart() {
-  const { completedTests, isLoading } = useCompletedTests();
+  const { data: completedTests, isLoading } = useCompletedTests();
 
   if (isLoading) {
     return (
@@ -19,7 +30,7 @@ export function TestAnalyticsChart() {
     );
   }
 
-  if (completedTests.length === 0) {
+  if (!completedTests || completedTests.length === 0) {
     return (
       <Card className="border-2 border-primary/20">
         <CardHeader>
@@ -43,9 +54,10 @@ export function TestAnalyticsChart() {
       name: test.name,
       date: new Date(Number(test.date) / 1_000_000),
       subject: test.subject,
-      percentage: test.scoredMarks && test.totalMarks
-        ? (Number(test.scoredMarks) / Number(test.totalMarks)) * 100
-        : 0,
+      percentage:
+        test.scoredMarks !== undefined && test.totalMarks > 0n
+          ? (Number(test.scoredMarks) / Number(test.totalMarks)) * 100
+          : 0,
     }))
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .map((item) => ({
@@ -57,7 +69,7 @@ export function TestAnalyticsChart() {
   // Prepare data for bar chart (average scores by subject)
   const subjectScores = new Map<string, { total: number; count: number }>();
   completedTests.forEach((test) => {
-    if (test.scoredMarks && test.totalMarks) {
+    if (test.scoredMarks !== undefined && test.totalMarks > 0n) {
       const percentage = (Number(test.scoredMarks) / Number(test.totalMarks)) * 100;
       const existing = subjectScores.get(test.subject) || { total: 0, count: 0 };
       subjectScores.set(test.subject, {
@@ -71,6 +83,9 @@ export function TestAnalyticsChart() {
     subject,
     average: scores.total / scores.count,
   }));
+
+  const uniqueSubjects = Array.from(new Set(completedTests.map((t) => t.subject)));
+  const lineColors = ['oklch(var(--primary))', 'oklch(var(--secondary))', 'oklch(var(--chart-1))', 'oklch(var(--chart-4))'];
 
   return (
     <Card className="border-2 border-primary/20 shadow-web">
@@ -91,17 +106,17 @@ export function TestAnalyticsChart() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={timelineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" />
-                <XAxis 
-                  dataKey="date" 
+                <XAxis
+                  dataKey="date"
                   stroke="oklch(var(--muted-foreground))"
                   style={{ fontSize: '12px' }}
                 />
-                <YAxis 
+                <YAxis
                   stroke="oklch(var(--muted-foreground))"
                   style={{ fontSize: '12px' }}
                   domain={[0, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: 'oklch(var(--card))',
                     border: '1px solid oklch(var(--border))',
@@ -109,14 +124,14 @@ export function TestAnalyticsChart() {
                   }}
                 />
                 <Legend />
-                {Array.from(new Set(completedTests.map(t => t.subject))).map((subject, index) => (
+                {uniqueSubjects.map((subject, index) => (
                   <Line
-                    key={subject}
+                    key={`line-${subject}`}
                     type="monotone"
                     dataKey={subject}
-                    stroke={index % 2 === 0 ? 'oklch(var(--primary))' : 'oklch(var(--secondary))'}
+                    stroke={lineColors[index % lineColors.length]}
                     strokeWidth={2}
-                    dot={{ fill: index % 2 === 0 ? 'oklch(var(--primary))' : 'oklch(var(--secondary))' }}
+                    dot={{ fill: lineColors[index % lineColors.length] }}
                   />
                 ))}
               </LineChart>
@@ -127,17 +142,17 @@ export function TestAnalyticsChart() {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={subjectData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" />
-                <XAxis 
-                  dataKey="subject" 
+                <XAxis
+                  dataKey="subject"
                   stroke="oklch(var(--muted-foreground))"
                   style={{ fontSize: '12px' }}
                 />
-                <YAxis 
+                <YAxis
                   stroke="oklch(var(--muted-foreground))"
                   style={{ fontSize: '12px' }}
                   domain={[0, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: 'oklch(var(--card))',
                     border: '1px solid oklch(var(--border))',
@@ -145,18 +160,12 @@ export function TestAnalyticsChart() {
                   }}
                 />
                 <Legend />
-                <Bar 
-                  dataKey="average" 
-                  fill="url(#colorGradient)" 
+                <Bar
+                  dataKey="average"
+                  fill="oklch(var(--primary))"
                   radius={[8, 8, 0, 0]}
                   name="Average Score (%)"
                 />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(var(--primary))" />
-                    <stop offset="100%" stopColor="oklch(var(--secondary))" />
-                  </linearGradient>
-                </defs>
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>

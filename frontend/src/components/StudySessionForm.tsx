@@ -1,219 +1,162 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../hooks/useActor';
 import { useSubjects } from '../hooks/useSubjects';
-import type { ExtendedActor } from '../lib/actorTypes';
-import { useInvalidateUserProgress } from '../hooks/useUserProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { BookOpen, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Loader2, Zap } from 'lucide-react';
+import type { ExtendedActor, StudySession } from '../lib/actorTypes';
 
-interface StudySessionFormProps {
-  onSuccess: () => void;
-}
-
-export function StudySessionForm({ onSuccess }: StudySessionFormProps) {
+export default function StudySessionForm() {
   const { actor } = useActor();
-  const { subjects, isLoading: subjectsLoading } = useSubjects();
-  const invalidateUserProgress = useInvalidateUserProgress();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const { subjects } = useSubjects();
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    subject: '',
-    hours: 0,
-    topics: '',
-    summary: '',
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [subject, setSubject] = useState('');
+  const [hours, setHours] = useState('');
+  const [topics, setTopics] = useState('');
+  const [summary, setSummary] = useState('');
+  const [errorLog, setErrorLog] = useState('');
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const extActor = actor as unknown as ExtendedActor;
+      const session: StudySession = {
+        date: BigInt(new Date(date).getTime()) * 1_000_000n,
+        subject,
+        hoursStudied: BigInt(hours || '0'),
+        topicsCovered: topics,
+        errorLog: errorLog.trim() ? errorLog.trim() : undefined,
+      };
+      await extActor.addStudySession(session);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studySessions'] });
+      queryClient.invalidateQueries({ queryKey: ['sessionSummaries'] });
+      queryClient.invalidateQueries({ queryKey: ['errorLogs'] });
+      setSubject('');
+      setHours('');
+      setTopics('');
+      setSummary('');
+      setErrorLog('');
+      toast.success('Study session logged!');
+    },
+    onError: () => {
+      toast.error('Failed to log study session');
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) {
-      toast.error('Backend not initialized');
+    if (!subject || !hours || !topics) {
+      toast.error('Please fill in all required fields');
       return;
     }
-
-    if (!formData.subject) {
-      toast.error('Please select a subject');
-      return;
-    }
-
-    if (formData.hours <= 0) {
-      toast.error('Hours studied must be greater than 0');
-      return;
-    }
-
-    if (!formData.topics.trim()) {
-      toast.error('Please describe the topics covered');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const ext = actor as unknown as ExtendedActor;
-      const dateMs = new Date(formData.date).getTime();
-      const dateNs = BigInt(dateMs) * BigInt(1_000_000);
-
-      const xpResponse = await ext.addStudySession(
-        dateNs,
-        formData.subject,
-        BigInt(formData.hours),
-        formData.topics
-      );
-
-      // Save session summary if provided
-      if (formData.summary.trim()) {
-        const sessionId = `${formData.subject}-${dateMs}`;
-        const formattedSummary = `
-📅 Date: ${new Date(formData.date).toLocaleDateString()}
-📚 Subject: ${formData.subject}
-⏱️ Duration: ${formData.hours} hours
-📝 Topics: ${formData.topics}
-
-✨ Summary & Important Points:
-${formData.summary}
-        `.trim();
-
-        await ext.saveSessionSummary(sessionId, formattedSummary);
-      }
-
-      const xpGained = Number(formData.hours) * 10;
-      toast.success(
-        <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-yellow-500" />
-          <span>
-            Session logged! <strong>+{xpGained} XP</strong> earned
-            {xpResponse && ` · Level ${Number(xpResponse.level)}`}
-          </span>
-        </div>
-      );
-
-      await invalidateUserProgress();
-
-      setFormData({
-        date: new Date().toISOString().split('T')[0],
-        subject: '',
-        hours: 0,
-        topics: '',
-        summary: '',
-      });
-      onSuccess();
-    } catch (error) {
-      console.error('Error logging study session:', error);
-      toast.error('Failed to log study session');
-    } finally {
-      setIsSubmitting(false);
-    }
+    mutation.mutate();
   };
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader>
-        <CardTitle>Log Study Session</CardTitle>
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-primary" />
+          Log Study Session
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              disabled={isSubmitting}
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Date</Label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                disabled={mutation.isPending}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Hours Studied</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                placeholder="e.g. 3"
+                disabled={mutation.isPending}
+                className="h-8 text-xs"
+              />
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Select
-              value={formData.subject}
-              onValueChange={(value) => setFormData({ ...formData, subject: value })}
-              disabled={isSubmitting || subjectsLoading}
-            >
-              <SelectTrigger id="subject">
-                <SelectValue
-                  placeholder={
-                    subjectsLoading
-                      ? 'Loading subjects...'
-                      : subjects.length === 0
-                      ? 'No subjects available'
-                      : 'Select a subject'
-                  }
-                />
+          <div className="space-y-1.5">
+            <Label className="text-xs">Subject</Label>
+            <Select value={subject} onValueChange={setSubject} disabled={mutation.isPending}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
-                {subjects.length === 0 ? (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    No subjects available. Add subjects from the Dashboard first.
-                  </div>
-                ) : (
-                  subjects.map((subject) => (
-                    <SelectItem key={subject.name} value={subject.name}>
-                      {subject.name}
-                    </SelectItem>
-                  ))
-                )}
+                {subjects.map((s) => (
+                  <SelectItem key={s.name} value={s.name} className="text-xs">
+                    {s.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="hours">Hours Studied</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Topics Covered</Label>
             <Input
-              id="hours"
-              type="number"
-              min="0.5"
-              step="0.5"
-              value={formData.hours || ''}
-              onChange={(e) => setFormData({ ...formData, hours: parseFloat(e.target.value) || 0 })}
-              placeholder="e.g., 2.5"
-              disabled={isSubmitting}
-              required
+              value={topics}
+              onChange={(e) => setTopics(e.target.value)}
+              placeholder="e.g. Chapter 3 - Consolidation"
+              disabled={mutation.isPending}
+              className="h-8 text-xs"
             />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="topics">Topics Covered</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Summary (optional)</Label>
             <Textarea
-              id="topics"
-              value={formData.topics}
-              onChange={(e) => setFormData({ ...formData, topics: e.target.value })}
-              placeholder="Describe the topics you studied..."
-              rows={3}
-              disabled={isSubmitting}
-              required
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="Brief summary of what you studied..."
+              disabled={mutation.isPending}
+              className="text-xs min-h-[60px] resize-none"
             />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="summary">Session Summary & Important Points (Optional)</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Error Log (optional)</Label>
             <Textarea
-              id="summary"
-              value={formData.summary}
-              onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              placeholder="Write your summary and important topics for final revision..."
-              rows={4}
-              disabled={isSubmitting}
+              value={errorLog}
+              onChange={(e) => setErrorLog(e.target.value)}
+              placeholder="Note any mistakes or areas needing more attention..."
+              disabled={mutation.isPending}
+              className="text-xs min-h-[60px] resize-none"
             />
-            <p className="text-xs text-muted-foreground">
-              This will be formatted and saved for your final revision reference 📝
-            </p>
           </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-            disabled={isSubmitting || subjectsLoading || subjects.length === 0}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Log Session
+          <Button type="submit" disabled={mutation.isPending} className="w-full h-8 text-xs">
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Logging...
+              </>
+            ) : (
+              'Log Session'
+            )}
           </Button>
         </form>
       </CardContent>

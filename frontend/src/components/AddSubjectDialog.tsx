@@ -1,10 +1,16 @@
-import { type ReactNode, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { SubjectForm } from './SubjectForm';
 
 interface AddSubjectDialogProps {
-  children: ReactNode;
-  onSuccess: () => void;
+  children: React.ReactNode;
+  onSuccess?: () => void;
 }
 
 export function AddSubjectDialog({ children, onSuccess }: AddSubjectDialogProps) {
@@ -12,13 +18,13 @@ export function AddSubjectDialog({ children, onSuccess }: AddSubjectDialogProps)
 
   const handleSuccess = () => {
     setOpen(false);
-    onSuccess();
+    onSuccess?.();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Subject</DialogTitle>
         </DialogHeader>

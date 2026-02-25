@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useActor } from '../hooks/useActor';
-import type { ExtendedActor } from '../lib/actorTypes';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -16,50 +16,64 @@ import { Loader2, Plus } from 'lucide-react';
 
 interface AddChapterDialogProps {
   subjectName: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
   children?: React.ReactNode;
 }
 
 export function AddChapterDialog({ subjectName, onSuccess, children }: AddChapterDialogProps) {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     chapterName: '',
-    totalTopics: 0,
+    totalTopics: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!actor) {
-      toast.error('Backend not initialized');
+      toast.error('Backend not initialized. Please wait a moment and try again.');
       return;
     }
 
-    if (!formData.chapterName.trim()) {
+    const trimmedName = formData.chapterName.trim();
+    if (!trimmedName) {
       toast.error('Please enter a chapter name');
       return;
     }
 
-    if (formData.totalTopics <= 0) {
+    const totalTopicsNum = parseInt(formData.totalTopics, 10);
+    if (!formData.totalTopics || isNaN(totalTopicsNum) || totalTopicsNum <= 0) {
       toast.error('Total topics must be greater than 0');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await (actor as unknown as ExtendedActor).addChapter(
-        subjectName,
-        formData.chapterName,
-        BigInt(formData.totalTopics)
-      );
-      toast.success('Chapter added successfully');
-      setFormData({ chapterName: '', totalTopics: 0 });
+      // Generate a unique chapter ID
+      const chapterId = `${subjectName}-${trimmedName}-${Date.now()}`;
+
+      await actor.addChapter({
+        chapterId,
+        chapterName: trimmedName,
+        subjectName: subjectName,
+        totalTopics: BigInt(totalTopicsNum),
+        completedTopics: BigInt(0),
+        chaptersCompleted: BigInt(0),
+        notesPdf: undefined,
+        isCompleted: false,
+      } as any);
+
+      toast.success('Chapter added successfully! 🎉');
+      setFormData({ chapterName: '', totalTopics: '' });
       setOpen(false);
-      onSuccess();
+      // Invalidate chapters cache so the list refreshes
+      await queryClient.invalidateQueries({ queryKey: ['chapters'] });
+      onSuccess?.();
     } catch (error) {
       console.error('Error adding chapter:', error);
-      toast.error('Failed to add chapter');
+      toast.error('Failed to add chapter. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -97,8 +111,8 @@ export function AddChapterDialog({ subjectName, onSuccess, children }: AddChapte
               id="totalTopics"
               type="number"
               min="1"
-              value={formData.totalTopics || ''}
-              onChange={(e) => setFormData({ ...formData, totalTopics: parseInt(e.target.value) || 0 })}
+              value={formData.totalTopics}
+              onChange={(e) => setFormData({ ...formData, totalTopics: e.target.value })}
               placeholder="e.g., 10"
               disabled={isSubmitting}
               required
@@ -109,8 +123,14 @@ export function AddChapterDialog({ subjectName, onSuccess, children }: AddChapte
             className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Chapter
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              'Add Chapter'
+            )}
           </Button>
         </form>
       </DialogContent>

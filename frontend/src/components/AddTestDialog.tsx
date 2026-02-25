@@ -1,27 +1,34 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { TestForm } from './TestForm';
+import TestForm from './TestForm';
 
 interface AddTestDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+  onSuccess?: () => void;
 }
 
-export function AddTestDialog({ open, onOpenChange }: AddTestDialogProps) {
+export function AddTestDialog({ children, onSuccess }: AddTestDialogProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSuccess = () => {
+    setOpen(false);
+    onSuccess?.();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Test</DialogTitle>
-          <DialogDescription>Create a new test to track your performance</DialogDescription>
         </DialogHeader>
-        <TestForm onSuccess={() => onOpenChange(false)} />
+        <TestForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );

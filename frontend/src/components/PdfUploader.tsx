@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useActor } from '../hooks/useActor';
-import type { ExtendedActor } from '../lib/actorTypes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +7,12 @@ import { toast } from 'sonner';
 import { Loader2, Upload } from 'lucide-react';
 
 interface PdfUploaderProps {
+  chapterId: string;
   chapterName: string;
   onSuccess: () => void;
 }
 
-export function PdfUploader({ chapterName, onSuccess }: PdfUploaderProps) {
+export function PdfUploader({ chapterId, chapterName, onSuccess }: PdfUploaderProps) {
   const { actor } = useActor();
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,7 +49,7 @@ export function PdfUploader({ chapterName, onSuccess }: PdfUploaderProps) {
       // Simulate progress
       setUploadProgress(50);
 
-      await (actor as unknown as ExtendedActor).uploadPdf(uint8Array, chapterName);
+      await actor.uploadPdf(chapterId, uint8Array);
 
       setUploadProgress(100);
       toast.success('PDF uploaded successfully');
@@ -66,9 +66,9 @@ export function PdfUploader({ chapterName, onSuccess }: PdfUploaderProps) {
   return (
     <div className="space-y-3 rounded-lg border-2 border-dashed border-primary/30 p-4">
       <div className="space-y-2">
-        <Label htmlFor={`pdf-${chapterName}`}>Select PDF Notes</Label>
+        <Label htmlFor={`pdf-${chapterId}`}>Select PDF Notes for {chapterName}</Label>
         <Input
-          id={`pdf-${chapterName}`}
+          id={`pdf-${chapterId}`}
           type="file"
           accept=".pdf"
           onChange={handleFileChange}

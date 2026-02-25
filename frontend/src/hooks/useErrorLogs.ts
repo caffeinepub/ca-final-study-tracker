@@ -1,21 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Test, ExtendedActor } from '../lib/actorTypes';
+import type { StudySession, ExtendedActor } from '../lib/actorTypes';
 
-export function useTests() {
+export function useErrorLogs() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Test[]>({
-    queryKey: ['allTests'],
+  return useQuery<StudySession[]>({
+    queryKey: ['errorLogs'],
     queryFn: async () => {
       if (!actor) return [];
       try {
         const extActor = actor as unknown as ExtendedActor;
-        const [completed, pending] = await Promise.all([
-          extActor.getCompletedTests(),
-          extActor.getNonCompletedTests(),
-        ]);
-        return [...completed, ...pending];
+        return await extActor.getSessionsWithErrors();
       } catch {
         return [];
       }

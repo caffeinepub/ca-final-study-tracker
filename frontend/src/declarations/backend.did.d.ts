@@ -11,11 +11,14 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface Chapter {
+  'isCompleted' : boolean,
   'subjectName' : string,
-  'name' : string,
   'totalTopics' : bigint,
+  'chapterId' : string,
+  'chaptersCompleted' : bigint,
   'notesPdf' : [] | [Uint8Array],
   'completedTopics' : bigint,
+  'chapterName' : string,
 }
 export interface Goal { 'actual' : bigint, 'dailyGoal' : bigint }
 export interface QuestionPaper {
@@ -40,19 +43,14 @@ export interface Reward {
   'isUnlocked' : boolean,
   'bonusXp' : bigint,
 }
-export interface SessionSummary { 'content' : string }
 export interface StudySession {
   'topicsCovered' : string,
   'subject' : string,
   'date' : Time,
   'hoursStudied' : bigint,
+  'errorLog' : [] | [string],
 }
-export interface Subject {
-  'targetCompletionDate' : Time,
-  'name' : string,
-  'totalTopics' : bigint,
-  'completedTopics' : bigint,
-}
+export interface Subject { 'name' : string, 'totalChapters' : bigint }
 export interface Test {
   'totalMarks' : bigint,
   'subject' : string,
@@ -63,11 +61,7 @@ export interface Test {
   'chapters' : Array<string>,
 }
 export type Time = bigint;
-export interface UserProfile {
-  'name' : string,
-  'email' : [] | [string],
-  'avatarUrl' : [] | [string],
-}
+export interface UserProfile { 'name' : string }
 export interface UserProgress {
   'xp' : bigint,
   'level' : bigint,
@@ -107,43 +101,39 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addChapter' : ActorMethod<[Chapter], undefined>,
-  'addQuestionPaper' : ActorMethod<[QuestionPaper], undefined>,
   'addRevisionTopic' : ActorMethod<[RevisionTopic], undefined>,
   'addReward' : ActorMethod<[Reward], undefined>,
   'addStudySession' : ActorMethod<[StudySession], undefined>,
-  'addSubject' : ActorMethod<[Subject], undefined>,
+  'addSubject' : ActorMethod<[string, bigint], undefined>,
   'addTest' : ActorMethod<[Test], undefined>,
-  'addXP' : ActorMethod<[bigint], XPResponse>,
-  'archiveChapter' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'deleteQuestionPaper' : ActorMethod<[string], undefined>,
+  'deleteChapter' : ActorMethod<[string], undefined>,
   'deleteSubject' : ActorMethod<[string], undefined>,
-  'deleteTest' : ActorMethod<[string], undefined>,
-  'getArchivedChapters' : ActorMethod<[], Array<Chapter>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChapters' : ActorMethod<[], Array<Chapter>>,
   'getCompletedTests' : ActorMethod<[], Array<Test>>,
-  'getDailyGoal' : ActorMethod<[], Goal>,
   'getNonCompletedTests' : ActorMethod<[], Array<Test>>,
   'getQuestionPapers' : ActorMethod<[], Array<QuestionPaper>>,
   'getRevisionTopics' : ActorMethod<[], Array<RevisionTopic>>,
   'getRewards' : ActorMethod<[], Array<Reward>>,
-  'getSessionSummary' : ActorMethod<[string], [] | [SessionSummary]>,
+  'getSessionsWithErrors' : ActorMethod<[], Array<StudySession>>,
   'getStudySessions' : ActorMethod<[], Array<StudySession>>,
   'getSubjects' : ActorMethod<[], Array<Subject>>,
+  'getTodayGoal' : ActorMethod<[], Goal>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getUserProgress' : ActorMethod<[], UserProgress>,
+  'getXP' : ActorMethod<[], XPResponse>,
+  'incrementTodayHours' : ActorMethod<[bigint], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'markRevisionComplete' : ActorMethod<[string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveSessionSummary' : ActorMethod<[string, SessionSummary], undefined>,
-  'setDailyGoal' : ActorMethod<[bigint], undefined>,
-  'updateChapter' : ActorMethod<[Chapter], undefined>,
-  'updateDailyActual' : ActorMethod<[bigint], undefined>,
-  'updateReward' : ActorMethod<[Reward], undefined>,
-  'updateSubject' : ActorMethod<[Subject], undefined>,
-  'updateTest' : ActorMethod<[Test], undefined>,
+  'setTodayGoal' : ActorMethod<[bigint], undefined>,
+  'updateChapterCompletion' : ActorMethod<[string, boolean], undefined>,
+  'updateChapterName' : ActorMethod<[string, string], undefined>,
   'updateUserProgress' : ActorMethod<[UserProgress], undefined>,
+  'uploadPdf' : ActorMethod<[string, Uint8Array], undefined>,
+  'uploadQuestionPaper' : ActorMethod<[QuestionPaper], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

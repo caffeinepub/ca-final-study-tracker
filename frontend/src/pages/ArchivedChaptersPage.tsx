@@ -1,84 +1,66 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Archive, Loader2 } from 'lucide-react';
+import React from 'react';
 import { useArchivedChapters } from '../hooks/useArchivedChapters';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getTopicEmoji } from '../utils/topicEmojis';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Archive, CheckCircle2, BookOpen } from 'lucide-react';
 
-export function ArchivedChaptersPage() {
-  const { archivedChapters, isLoading } = useArchivedChapters();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+export default function ArchivedChaptersPage() {
+  const { data: archivedChapters, isLoading } = useArchivedChapters();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary">
-          <Archive className="h-6 w-6" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Archived Chapters
-          </h2>
-          <p className="text-muted-foreground mt-1">Chapters from deleted subjects 📦</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
+          <Archive className="h-6 w-6 text-primary" />
+          Archived Chapters
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          All completed chapters across your subjects
+        </p>
       </div>
 
-      {archivedChapters.length === 0 ? (
-        <Alert>
-          <AlertDescription>
-            No archived chapters. Chapters from deleted subjects will appear here.
-          </AlertDescription>
-        </Alert>
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      ) : !archivedChapters || archivedChapters.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Archive className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No completed chapters yet. Keep studying!</p>
+        </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {archivedChapters.map((chapter) => {
-            const progress = Number(chapter.totalTopics) > 0
-              ? (Number(chapter.completedTopics) / Number(chapter.totalTopics)) * 100
-              : 0;
-            const emoji = getTopicEmoji(chapter.name);
-
-            return (
-              <Card key={chapter.name} className="border-2 border-primary/10">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{emoji}</span>
-                    <CardTitle className="text-lg">{chapter.name}</CardTitle>
-                  </div>
-                  <Badge variant="outline" className="w-fit">
-                    From: {chapter.subjectName}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-semibold text-primary">{progress.toFixed(0)}%</span>
+        <div className="space-y-3">
+          {archivedChapters.map((chapter) => (
+            <Card
+              key={chapter.chapterId}
+              className="border-green-500/30 bg-green-500/5"
+            >
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-green-500/10">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
                     </div>
-                    <Progress 
-                      value={progress} 
-                      className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-secondary" 
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {chapter.completedTopics.toString()} of {chapter.totalTopics.toString()} topics completed
-                    </p>
+                    <div>
+                      <p className="font-medium line-through text-muted-foreground">
+                        {chapter.chapterName}
+                      </p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <BookOpen className="h-3 w-3" />
+                        {chapter.subjectName}
+                      </p>
+                    </div>
                   </div>
-                  {chapter.notesPdf && (
-                    <Badge variant="secondary" className="text-xs">
-                      📄 Has PDF Notes
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+                    ✓ Completed
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>

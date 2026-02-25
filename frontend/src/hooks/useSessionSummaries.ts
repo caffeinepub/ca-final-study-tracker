@@ -10,25 +10,23 @@ export interface SessionSummaryEntry {
 export function useSessionSummaries() {
   const { actor, isFetching } = useActor();
 
-  const query = useQuery<SessionSummaryEntry[]>({
+  return useQuery<SessionSummaryEntry[]>({
     queryKey: ['sessionSummaries'],
     queryFn: async () => {
       if (!actor) return [];
       try {
-        return await (actor as unknown as ExtendedActor).getSessionSummaries();
-      } catch (err) {
-        console.warn('useSessionSummaries: could not fetch summaries', err);
+        const extActor = actor as unknown as ExtendedActor;
+        const sessions = await extActor.getStudySessions();
+        return sessions
+          .filter((s) => s.topicsCovered && s.topicsCovered.trim().length > 0)
+          .map((s, i) => ({
+            key: `session-${i}`,
+            value: { content: `${s.subject}: ${s.topicsCovered}` },
+          }));
+      } catch {
         return [];
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
-
-  return {
-    summaries: query.data ?? [],
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

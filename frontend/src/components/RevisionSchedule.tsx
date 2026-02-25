@@ -1,156 +1,138 @@
-import { useState } from 'react';
-import { useActor } from '../hooks/useActor';
-import type { ExtendedActor } from '../lib/actorTypes';
+import React from 'react';
 import { useRevisionSchedule } from '../hooks/useRevisionSchedule';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useActor } from '../hooks/useActor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Calendar, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Calendar, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import type { ExtendedActor } from '../lib/actorTypes';
 
-interface RevisionScheduleProps {
-  onUpdate?: () => void;
+function formatDate(timestamp: bigint): string {
+  const ms = Number(timestamp) / 1_000_000;
+  return new Date(ms).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
-export function RevisionSchedule({ onUpdate }: RevisionScheduleProps) {
+export default function RevisionSchedule() {
+  const { data: topics, isLoading } = useRevisionSchedule();
   const { actor } = useActor();
-  const { revisions, isLoading, refetch } = useRevisionSchedule();
-  const [completing, setCompleting] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const now = Date.now();
+  const completeMutation = useMutation({
+    mutationFn: async ({ subject, topic }: { subject: string; topic: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      const extActor = actor as unknown as ExtendedActor;
+      await extActor.markRevisionComplete(subject, topic);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['revisionTopics'] });
+      toast.success('Revision marked as complete!');
+    },
+    onError: () => {
+      toast.error('Failed to mark revision complete');
+    },
+  });
 
-  const handleComplete = async (subject: string, topic: string) => {
-    if (!actor) return;
-    const key = `${subject}-${topic}`;
-    setCompleting(key);
-    try {
-      await (actor as unknown as ExtendedActor).markRevisionComplete(subject, topic);
-      toast.success(`Marked "${topic}" as complete`);
-      refetch();
-      onUpdate?.();
-    } catch (error) {
-      console.error('Error marking revision complete:', error);
-      toast.error('Failed to mark revision as complete');
-    } finally {
-      setCompleting(null);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const overdue = revisions.filter((r) => !r.isComplete && Number(r.scheduledDate) / 1_000_000 < now);
-  const upcoming = revisions.filter(
-    (r) => !r.isComplete && Number(r.scheduledDate) / 1_000_000 >= now
-  );
-  const completed = revisions.filter((r) => r.isComplete);
-
-  if (revisions.length === 0) {
-    return (
-      <Card className="border-2 border-primary/20">
-        <CardContent className="py-8 text-center text-muted-foreground">
-          No revision topics scheduled yet. Add your first revision topic to get started.
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const RevisionItem = ({
-    subject,
-    topic,
-    scheduledDate,
-    isComplete,
-  }: {
-    subject: string;
-    topic: string;
-    scheduledDate: bigint;
-    isComplete: boolean;
-  }) => {
-    const key = `${subject}-${topic}`;
-    const date = new Date(Number(scheduledDate) / 1_000_000);
-    const isCompleting = completing === key;
-
-    return (
-      <div className="flex items-start gap-3 rounded-lg border border-border bg-card/50 p-3">
-        <Checkbox
-          checked={isComplete}
-          disabled={isComplete || isCompleting}
-          onCheckedChange={() => !isComplete && handleComplete(subject, topic)}
-          className="mt-0.5"
-        />
-        {isCompleting && <Loader2 className="h-4 w-4 animate-spin text-primary mt-0.5" />}
-        <div className="flex-1 min-w-0">
-          <p className={`font-medium text-sm ${isComplete ? 'line-through text-muted-foreground' : ''}`}>
-            {topic}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {subject}
-            </Badge>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {date.toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const now = Date.now() * 1_000_000;
+  const overdue = topics?.filter((t) => !t.isComplete && Number(t.scheduledDate) < now) ?? [];
+  const upcoming = topics?.filter((t) => !t.isComplete && Number(t.scheduledDate) >= now) ?? [];
+  const completed = topics?.filter((t) => t.isComplete) ?? [];
 
   return (
-    <div className="space-y-6">
-      {overdue.length > 0 && (
-        <Card className="border-2 border-destructive/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-destructive text-base">
-              <AlertCircle className="h-4 w-4" />
-              Overdue ({overdue.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {overdue.map((r) => (
-              <RevisionItem key={`${r.subject}-${r.topic}`} {...r} />
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          Revision Schedule
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 rounded-lg" />
             ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {upcoming.length > 0 && (
-        <Card className="border-2 border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Clock className="h-4 w-4 text-primary" />
-              Upcoming ({upcoming.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {upcoming.map((r) => (
-              <RevisionItem key={`${r.subject}-${r.topic}`} {...r} />
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {completed.length > 0 && (
-        <Card className="border-2 border-chart-1/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-chart-1 text-base">
-              <CheckCircle2 className="h-4 w-4" />
-              Completed ({completed.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {completed.map((r) => (
-              <RevisionItem key={`${r.subject}-${r.topic}`} {...r} />
-            ))}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        ) : (topics?.length ?? 0) === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-6">
+            No revision topics scheduled yet.
+          </p>
+        ) : (
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {overdue.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-destructive mb-1.5 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Overdue
+                </p>
+                {overdue.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-2 mb-1.5">
+                    <div>
+                      <p className="text-xs font-medium">{t.topic}</p>
+                      <p className="text-xs text-muted-foreground">{t.subject} · {formatDate(t.scheduledDate)}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs px-2"
+                      onClick={() => completeMutation.mutate({ subject: t.subject, topic: t.topic })}
+                      disabled={completeMutation.isPending}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {upcoming.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Upcoming
+                </p>
+                {upcoming.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border/40 p-2 mb-1.5">
+                    <div>
+                      <p className="text-xs font-medium">{t.topic}</p>
+                      <p className="text-xs text-muted-foreground">{t.subject} · {formatDate(t.scheduledDate)}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs px-2"
+                      onClick={() => completeMutation.mutate({ subject: t.subject, topic: t.topic })}
+                      disabled={completeMutation.isPending}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {completed.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-green-600 mb-1.5 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Completed
+                </p>
+                {completed.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-green-500/20 bg-green-500/5 p-2 mb-1.5 opacity-60">
+                    <div>
+                      <p className="text-xs font-medium line-through">{t.topic}</p>
+                      <p className="text-xs text-muted-foreground">{t.subject}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs h-5 bg-green-500/10 text-green-600">
+                      ✓
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

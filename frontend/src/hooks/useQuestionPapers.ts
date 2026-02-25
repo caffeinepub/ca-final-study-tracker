@@ -1,29 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { QuestionPaperMeta, ExtendedActor } from '../lib/actorTypes';
+import type { ExtendedActor, QuestionPaperMeta } from '../lib/actorTypes';
 
 export function useQuestionPapers() {
   const { actor, isFetching } = useActor();
 
-  const query = useQuery<QuestionPaperMeta[]>({
+  return useQuery<QuestionPaperMeta[]>({
     queryKey: ['questionPapers'],
     queryFn: async () => {
       if (!actor) return [];
       try {
-        return await (actor as unknown as ExtendedActor).getAllQuestionPapers();
-      } catch (err) {
-        console.warn('useQuestionPapers: could not fetch question papers', err);
+        const extActor = actor as unknown as ExtendedActor;
+        const papers = await extActor.getQuestionPapers();
+        return papers.map((p) => ({ name: p.name, uploadDate: p.uploadDate }));
+      } catch {
         return [];
       }
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
-
-  return {
-    papers: query.data ?? [],
-    isLoading: isFetching || query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }

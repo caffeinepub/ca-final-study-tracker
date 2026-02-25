@@ -1,143 +1,104 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../hooks/useActor';
-import type { Subject, ExtendedActor } from '../lib/actorTypes';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import type { ExtendedActor } from '../lib/actorTypes';
 import { Loader2 } from 'lucide-react';
 
 interface SubjectFormProps {
-  subject?: Subject;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-export function SubjectForm({ subject, onSuccess }: SubjectFormProps) {
+export function SubjectForm({ onSuccess }: SubjectFormProps) {
   const { actor } = useActor();
-  const isEditing = !!subject;
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const [name, setName] = useState('');
+  const [totalChapters, setTotalChapters] = useState('');
+  const [error, setError] = useState('');
 
-  const [formData, setFormData] = useState({
-    name: subject?.name ?? '',
-    totalTopics: subject ? Number(subject.totalTopics) : 0,
-    completedTopics: subject ? Number(subject.completedTopics) : 0,
-    targetDate: subject
-      ? new Date(Number(subject.targetCompletionDate) / 1_000_000).toISOString().split('T')[0]
-      : '',
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('Please log in to add subjects');
+      const extActor = actor as unknown as ExtendedActor;
+      await extActor.addSubject(name.trim(), BigInt(totalChapters || '0'));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
+      setName('');
+      setTotalChapters('');
+      setError('');
+      onSuccess?.();
+    },
+    onError: (err: Error) => {
+      if (err.message.includes('Unauthorized') || err.message.includes('authorized')) {
+        setError('You are not authorized to add subjects. Please make sure you are logged in.');
+      } else {
+        setError(err.message || 'Failed to add subject');
+      }
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) {
-      toast.error('Backend not initialized');
+    setError('');
+    if (!name.trim()) {
+      setError('Subject name is required');
       return;
     }
-
-    if (!formData.name.trim()) {
-      toast.error('Please enter a subject name');
+    if (!identity) {
+      setError('Please log in to add subjects');
       return;
     }
-
-    if (formData.totalTopics <= 0) {
-      toast.error('Total topics must be greater than 0');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const ext = actor as unknown as ExtendedActor;
-      if (isEditing) {
-        await ext.updateCompletedTopics(formData.name, BigInt(formData.completedTopics));
-        toast.success('Subject updated successfully');
-      } else {
-        if (!formData.targetDate) {
-          toast.error('Please select a target completion date');
-          setIsSubmitting(false);
-          return;
-        }
-        const targetDateNs = BigInt(new Date(formData.targetDate).getTime()) * BigInt(1_000_000);
-        await ext.addSubject(formData.name, BigInt(formData.totalTopics), targetDateNs);
-        toast.success('Subject added successfully');
-      }
-      onSuccess();
-    } catch (error) {
-      console.error('Error saving subject:', error);
-      toast.error('Failed to save subject');
-    } finally {
-      setIsSubmitting(false);
-    }
+    mutation.mutate();
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Subject Name</Label>
+        <Label htmlFor="subject-name">Subject Name</Label>
         <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="e.g., Financial Reporting"
-          disabled={isEditing || isSubmitting}
-          required
+          id="subject-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. Financial Reporting"
+          disabled={mutation.isPending}
         />
       </div>
-
-      {!isEditing && (
-        <div className="space-y-2">
-          <Label htmlFor="totalTopics">Total Topics</Label>
-          <Input
-            id="totalTopics"
-            type="number"
-            min="1"
-            value={formData.totalTopics || ''}
-            onChange={(e) => setFormData({ ...formData, totalTopics: parseInt(e.target.value) || 0 })}
-            placeholder="e.g., 50"
-            disabled={isSubmitting}
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="total-chapters">Total Chapters</Label>
+        <Input
+          id="total-chapters"
+          type="number"
+          min="0"
+          value={totalChapters}
+          onChange={(e) => setTotalChapters(e.target.value)}
+          placeholder="e.g. 12"
+          disabled={mutation.isPending}
+        />
+      </div>
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
       )}
-
-      {isEditing && (
-        <div className="space-y-2">
-          <Label htmlFor="completedTopics">Completed Topics</Label>
-          <Input
-            id="completedTopics"
-            type="number"
-            min="0"
-            max={Number(subject?.totalTopics ?? 0)}
-            value={formData.completedTopics}
-            onChange={(e) => setFormData({ ...formData, completedTopics: parseInt(e.target.value) || 0 })}
-            disabled={isSubmitting}
-          />
-          <p className="text-xs text-muted-foreground">
-            Out of {subject?.totalTopics?.toString() ?? '0'} total topics
-          </p>
-        </div>
-      )}
-
-      {!isEditing && (
-        <div className="space-y-2">
-          <Label htmlFor="targetDate">Target Completion Date</Label>
-          <Input
-            id="targetDate"
-            type="date"
-            value={formData.targetDate}
-            onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
-            disabled={isSubmitting}
-            required
-          />
-        </div>
-      )}
-
-      <Button
-        type="submit"
-        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-        disabled={isSubmitting}
-      >
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? 'Update Subject' : 'Add Subject'}
+      <Button type="submit" disabled={mutation.isPending || !identity} className="w-full">
+        {mutation.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Adding...
+          </>
+        ) : (
+          'Add Subject'
+        )}
       </Button>
+      {!identity && (
+        <p className="text-xs text-muted-foreground text-center">
+          You must be logged in to add subjects.
+        </p>
+      )}
     </form>
   );
 }

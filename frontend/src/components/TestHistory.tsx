@@ -1,129 +1,110 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TestCard } from './TestCard';
-import { useTests } from '../hooks/useTests';
-import { usePendingTests } from '../hooks/usePendingTests';
+import React from 'react';
 import { useCompletedTests } from '../hooks/useCompletedTests';
-import { Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { usePendingTests } from '../hooks/usePendingTests';
 import { useSubjects } from '../hooks/useSubjects';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ClipboardList } from 'lucide-react';
+import TestCard from './TestCard';
 
-export function TestHistory() {
-  const { tests, isLoading: allLoading, refetch: refetchAll } = useTests();
-  const { pendingTests, isLoading: pendingLoading, refetch: refetchPending } = usePendingTests();
-  const { completedTests, isLoading: completedLoading, refetch: refetchCompleted } = useCompletedTests();
+export default function TestHistory() {
+  const { data: completedTests, isLoading: completedLoading } = useCompletedTests();
+  const { data: pendingTests, isLoading: pendingLoading } = usePendingTests();
   const { subjects } = useSubjects();
 
-  const refetchAll3 = () => {
-    refetchAll();
-    refetchPending();
-    refetchCompleted();
-  };
-
-  if (allLoading || pendingLoading || completedLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Calculate subject-wise progress
-  const subjectProgress = new Map<string, { total: number; scored: number; count: number }>();
-  completedTests.forEach((test) => {
-    if (test.scoredMarks && test.totalMarks) {
-      const existing = subjectProgress.get(test.subject) || { total: 0, scored: 0, count: 0 };
-      subjectProgress.set(test.subject, {
-        total: existing.total + Number(test.totalMarks),
-        scored: existing.scored + Number(test.scoredMarks),
-        count: existing.count + 1,
-      });
-    }
+  // Compute subject-wise average scores
+  const subjectScores = subjects.map((s) => {
+    const subjectTests = completedTests?.filter(
+      (t) => t.subject === s.name && t.scoredMarks !== undefined
+    ) ?? [];
+    if (subjectTests.length === 0) return { name: s.name, avg: 0, count: 0 };
+    const avg =
+      subjectTests.reduce((sum, t) => {
+        const pct = t.totalMarks > 0n ? (Number(t.scoredMarks!) / Number(t.totalMarks)) * 100 : 0;
+        return sum + pct;
+      }, 0) / subjectTests.length;
+    return { name: s.name, avg: Math.round(avg), count: subjectTests.length };
   });
 
   return (
-    <div className="space-y-6">
-      {/* Subject-wise Progress Bars */}
-      {subjectProgress.size > 0 && (
-        <Card className="border-2 border-primary/20 shadow-web">
-          <CardHeader>
-            <CardTitle>Subject-wise Test Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Array.from(subjectProgress.entries()).map(([subject, data]) => {
-                const percentage = (data.scored / data.total) * 100;
-                return (
-                  <div key={subject} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{subject}</span>
-                      <span className="text-muted-foreground">
-                        {data.scored} / {data.total} ({percentage.toFixed(1)}%) • {data.count} test{data.count > 1 ? 's' : ''}
-                      </span>
+    <Card className="border-border/50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-primary" />
+          Test History
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="pending">
+          <TabsList className="h-8 text-xs mb-3">
+            <TabsTrigger value="pending" className="text-xs h-7">
+              Pending ({pendingTests?.length ?? 0})
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="text-xs h-7">
+              Completed ({completedTests?.length ?? 0})
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="text-xs h-7">
+              Progress
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pending">
+            {pendingLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+              </div>
+            ) : (pendingTests?.length ?? 0) === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">No pending tests.</p>
+            ) : (
+              <div className="space-y-2">
+                {pendingTests!.map((test, i) => (
+                  <TestCard key={`${test.name}-${i}`} test={test} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="completed">
+            {completedLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+              </div>
+            ) : (completedTests?.length ?? 0) === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">No completed tests.</p>
+            ) : (
+              <div className="space-y-2">
+                {completedTests!.map((test, i) => (
+                  <TestCard key={`${test.name}-${i}`} test={test} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="progress">
+            <div className="space-y-3">
+              {subjectScores.filter((s) => s.count > 0).length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-6">
+                  Complete some tests to see progress.
+                </p>
+              ) : (
+                subjectScores
+                  .filter((s) => s.count > 0)
+                  .map((s) => (
+                    <div key={s.name} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium">{s.name}</span>
+                        <span className="text-muted-foreground">{s.avg}% avg ({s.count} tests)</span>
+                      </div>
+                      <Progress value={s.avg} className="h-2" />
                     </div>
-                    <Progress 
-                      value={percentage} 
-                      className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-secondary"
-                    />
-                  </div>
-                );
-              })}
+                  ))
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Test Tabs */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All Tests ({tests.length})</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({pendingTests.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedTests.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4 mt-6">
-          {tests.length === 0 ? (
-            <Alert>
-              <AlertDescription>No tests added yet. Create your first test to get started! 🎯</AlertDescription>
-            </Alert>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {tests.map((test) => (
-                <TestCard key={test.name} test={test} onUpdate={refetchAll3} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="pending" className="space-y-4 mt-6">
-          {pendingTests.length === 0 ? (
-            <Alert>
-              <AlertDescription>No pending tests. All tests have been completed! ✅</AlertDescription>
-            </Alert>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {pendingTests.map((test) => (
-                <TestCard key={test.name} test={test} onUpdate={refetchAll3} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-4 mt-6">
-          {completedTests.length === 0 ? (
-            <Alert>
-              <AlertDescription>No completed tests yet. Add scores to your tests to see them here! 📝</AlertDescription>
-            </Alert>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {completedTests.map((test) => (
-                <TestCard key={test.name} test={test} onUpdate={refetchAll3} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }
