@@ -1,0 +1,56 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-25T05:42:38.571Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 2,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Fix the backend canister so that CA Final subjects and chapters are reliably pre-populated on first use. Ensure the initialization logic completes successfully without hanging, and that calling getSubjects returns a non-empty list of CA Final subjects after initialization.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Fix the frontend useSeedData hook so that it correctly detects when subjects have not yet been seeded, triggers the seeding process, and transitions out of the 'Setting up subjects...' loading state promptly once seeding completes. Add a timeout or fallback so the UI never hangs indefinitely on the loading screen.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useSeedData.ts",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/hooks/useSubjects.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useSeedData.ts",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/hooks/useSubjects.ts"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useSeedData.ts",
+    "frontend/src/hooks/useSubjects.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

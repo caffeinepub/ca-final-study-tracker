@@ -1,0 +1,36 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-25T05:42:38.568Z",
+  "summary": "The diff implements REQ-2 (frontend useSeedData hook with timeout, error handling, query invalidation, and UI feedback) thoroughly. REQ-1 (backend canister fix for reliable pre-population of CA Final subjects/chapters) is not meaningfully addressed — the backend/main.mo changes appear to be structural refactoring and a migration module was added, but no actual initialization/seeding logic for CA Final subjects and chapters is visible in the backend code.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Fix the backend canister so that CA Final subjects and chapters are reliably pre-populated on first use. Ensure the initialization logic completes successfully without hanging, and that calling getSubjects returns a non-empty list of CA Final subjects after initialization.",
+      "reason": "The diff shows backend/main.mo was modified and a migration.mo was added, but neither contains any initialization logic that pre-populates CA Final subjects and chapters. The migration module is a no-op identity transform. There is no init(), post_upgrade(), or equivalent function visible in the truncated main.mo that seeds CA Final data. The entire seeding responsibility was pushed to the frontend hook (useSeedData.ts), which does not satisfy the backend AC of getSubjects returning pre-populated data reliably on first use, idempotent initialization, or chapters being associated with subjects at the backend level.",
+      "evidence": [
+        "backend/main.mo",
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "A migration module (backend/migration.mo) was added that performs an identity transform on subjects data.",
+      "reason": "The build request does not mention any data migration requirement. The migration.mo file was not requested and adds complexity without addressing any stated requirement.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "confidence": 0.78,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/hooks/useSeedData.ts",
+    "frontend/src/hooks/useSubjects.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "project_state.json"
+  ]
+}

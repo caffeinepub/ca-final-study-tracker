@@ -1,0 +1,33 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Fix subjects initialization stuck on 'Setting up subjects...'",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Fix the frontend useSeedData hook to correctly detect when subjects have not been seeded, trigger seeding without hanging, and add timeout/fallback handling for the loading state",
+      "acceptanceCriteria": [
+        "The 'Setting up subjects...' message disappears and subjects are displayed within a few seconds of the app loading",
+        "If seeding fails or takes too long, a user-friendly error message is shown instead of an infinite spinner",
+        "After seeding, related queries (subjects, chapters) are invalidated so the UI reflects the newly seeded data"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useSeedData.ts",
+          "operation": "modify",
+          "description": "Refactor the seeding logic to properly detect empty subject lists, add a timeout mechanism (e.g., 30 seconds) to prevent infinite loading, implement proper error handling with user-friendly messages, ensure the hook correctly invalidates subjects and chapters queries after successful seeding, and add retry logic if initial seeding fails. Verify that the hook uses the backend interface's getSubjects and addSubject methods correctly."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Update the Dashboard to consume seeding state from useSeedData hook, display 'Setting up subjects...' loading message only while seeding is in progress, show a user-friendly error message with a retry button if seeding fails or times out, and ensure the UI transitions smoothly to displaying subjects once seeding completes successfully."
+        },
+        {
+          "path": "frontend/src/hooks/useSubjects.ts",
+          "operation": "modify",
+          "description": "Review and ensure the useSubjects hook properly returns loading and error states so that components consuming it can distinguish between no-data-yet (seeding needed) versus data-loaded scenarios. Add a flag or return property to indicate when the query has completed its first fetch attempt."
+        }
+      ]
+    }
+  ]
+}

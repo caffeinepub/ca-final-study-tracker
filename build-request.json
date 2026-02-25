@@ -1,0 +1,59 @@
+{
+  "kind": "build_request",
+  "title": "Fix subjects initialization stuck on 'Setting up subjects...'",
+  "projectName": "CA Final Study Tracker",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Fix the backend canister so that CA Final subjects and chapters are reliably pre-populated on first use. Ensure the initialization logic completes successfully without hanging, and that calling getSubjects returns a non-empty list of CA Final subjects after initialization.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "Subjects are not loading it is coming setting up subjects since long"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling getSubjects returns all pre-populated CA Final subjects without timeout or error",
+        "Subjects are initialized idempotently — calling the initialization logic multiple times does not create duplicates",
+        "All chapters are associated with their respective subjects after initialization"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Fix the frontend useSeedData hook so that it correctly detects when subjects have not yet been seeded, triggers the seeding process, and transitions out of the 'Setting up subjects...' loading state promptly once seeding completes. Add a timeout or fallback so the UI never hangs indefinitely on the loading screen.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "it is coming setting up subjects since long"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The 'Setting up subjects...' message disappears and subjects are displayed within a few seconds of the app loading",
+        "If seeding fails or takes too long, a user-friendly error message is shown instead of an infinite spinner",
+        "After seeding, related queries (subjects, chapters) are invalidated so the UI reflects the newly seeded data"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not remove or replace existing CA Final subject/chapter data defined in frontend/src/utils/caFinalData.ts",
+    "Preserve all existing backend data models and query/update method signatures"
+  ],
+  "nonGoals": [
+    "Adding new subjects or chapters beyond the existing ICAI CA Final curriculum",
+    "Changing the authentication or Internet Identity flow",
+    "Modifying any UI pages other than the loading/initialization state"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

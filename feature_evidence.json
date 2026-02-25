@@ -1,0 +1,27 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-frontend-useseeddata-hook-so-that-it-correctly-detects-when-subjects-have-not-yet-been-seeded-triggers-the-seeding-process-and-transitions-out-of-the-setting-up-subjects-loading-state-promptly-once-seeding-completes-add-a-timeout-or-fallback-so-the-ui-never-hangs-indefinitely-on-the-loading-screen",
+      "featureTitle": "Fix the frontend useSeedData hook so that it correctly detects when subjects have not yet been seeded, triggers the seeding process, and transitions out of the 'Setting up subjects...' loading state promptly once seeding completes. Add a timeout or fallback so the UI never hangs indefinitely on the loading screen.",
+      "files": [
+        "frontend/src/hooks/useSeedData.ts",
+        "frontend/src/hooks/useSubjects.ts",
+        "frontend/src/pages/Dashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
